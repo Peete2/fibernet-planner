@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { useInactivityLogout } from "@/hooks/use-inactivity-logout";
 import Index from "./pages/Index";
 import Coverage from "./pages/Coverage";
 import Apply from "./pages/Apply";
@@ -20,6 +21,11 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+function InactivityGuard({ children }: { children: React.ReactNode }) {
+  useInactivityLogout();
+  return <>{children}</>;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -27,6 +33,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <InactivityGuard>
           <Navbar />
           <Routes>
             <Route path="/" element={<Index />} />
@@ -69,6 +76,7 @@ const App = () => (
             />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </InactivityGuard>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
