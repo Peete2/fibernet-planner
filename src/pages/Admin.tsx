@@ -68,6 +68,13 @@ export default function Admin() {
   const [loading, setLoading] = useState(true);
   const [drawMapKey, setDrawMapKey] = useState(0);
 
+  // Search & filter state
+  const [appSearch, setAppSearch] = useState("");
+  const [appStatusFilter, setAppStatusFilter] = useState("all");
+  const [appDistrictFilter, setAppDistrictFilter] = useState("all");
+  const [nodeSearch, setNodeSearch] = useState("");
+  const [nodeStatusFilter, setNodeStatusFilter] = useState("all");
+
   // Assignment state for the Assign tab
   const [assignTech, setAssignTech] = useState<Record<string, string>>({});
   const [assignDate, setAssignDate] = useState<Record<string, string>>({});
