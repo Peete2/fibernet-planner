@@ -314,9 +314,31 @@ export default function Admin() {
             {/* ========== APPLICATIONS ========== */}
             <TabsContent value="applications">
               <div className="bg-card border border-border rounded-xl shadow-telecom overflow-hidden">
-                <div className="p-5 border-b border-border flex items-center justify-between">
-                  <h3 className="font-display font-semibold text-foreground">All Applications ({applications.length})</h3>
-                  <CreateApplicationDialog onCreated={fetchData} />
+                <div className="p-5 border-b border-border space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-display font-semibold text-foreground">All Applications ({filteredApps.length}{filteredApps.length !== applications.length ? ` of ${applications.length}` : ""})</h3>
+                    <CreateApplicationDialog onCreated={fetchData} />
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <div className="relative flex-1 min-w-[200px]">
+                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input value={appSearch} onChange={(e) => setAppSearch(e.target.value)} placeholder="Search by name, ref, location..." className="pl-9 h-9 text-sm" />
+                    </div>
+                    <Select value={appStatusFilter} onValueChange={setAppStatusFilter}>
+                      <SelectTrigger className="h-9 w-44 text-sm"><SelectValue placeholder="All statuses" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Statuses</SelectItem>
+                        {allStatuses.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <Select value={appDistrictFilter} onValueChange={setAppDistrictFilter}>
+                      <SelectTrigger className="h-9 w-40 text-sm"><SelectValue placeholder="All districts" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Districts</SelectItem>
+                        {DISTRICTS.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
