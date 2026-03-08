@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from "recharts";
 import { DISTRICTS } from "@/lib/mock-data";
-import { Users, FileText, CheckCircle, Wifi, Pencil, Trash2, X, Save, BarChart3, Route, Flame, CalendarDays, UserCheck, Plus, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Users, FileText, CheckCircle, Wifi, Pencil, Trash2, X, Save, BarChart3, Route, Flame, CalendarDays, UserCheck, Plus, Search, ChevronLeft, ChevronRight, ScrollText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
