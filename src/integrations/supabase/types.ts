@@ -14,6 +14,114 @@ export type Database = {
   }
   public: {
     Tables: {
+      applications: {
+        Row: {
+          created_at: string
+          customer_name: string
+          district: string
+          email: string | null
+          id: string
+          latitude: number | null
+          location: string | null
+          longitude: number | null
+          phone: string | null
+          ref_code: string
+          service: string
+          status: string
+          technician: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          customer_name: string
+          district: string
+          email?: string | null
+          id?: string
+          latitude?: number | null
+          location?: string | null
+          longitude?: number | null
+          phone?: string | null
+          ref_code?: string
+          service: string
+          status?: string
+          technician?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          customer_name?: string
+          district?: string
+          email?: string | null
+          id?: string
+          latitude?: number | null
+          location?: string | null
+          longitude?: number | null
+          phone?: string | null
+          ref_code?: string
+          service?: string
+          status?: string
+          technician?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      fiber_nodes: {
+        Row: {
+          capacity: number
+          created_at: string
+          id: string
+          latitude: number
+          longitude: number
+          name: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          capacity?: number
+          created_at?: string
+          id?: string
+          latitude: number
+          longitude: number
+          name: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          capacity?: number
+          created_at?: string
+          id?: string
+          latitude?: number
+          longitude?: number
+          name?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      fiber_routes: {
+        Row: {
+          coordinates: Json
+          created_at: string
+          id: string
+          route_name: string
+        }
+        Insert: {
+          coordinates?: Json
+          created_at?: string
+          id?: string
+          route_name: string
+        }
+        Update: {
+          coordinates?: Json
+          created_at?: string
+          id?: string
+          route_name?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
