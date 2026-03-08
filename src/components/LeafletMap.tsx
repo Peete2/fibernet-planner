@@ -30,6 +30,7 @@ export default function LeafletMap({
   showHeatmap = false,
   showRoutes = true,
   showNodes = true,
+  showLocateMe = false,
   height = "500px",
   center = LESOTHO_CENTER,
   zoom = 8,
