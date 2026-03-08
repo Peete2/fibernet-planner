@@ -50,7 +50,7 @@ export default function Profile() {
   if (!loaded) {
     return (
       <div className="pt-20 min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-6 h-6 animate-spin text-secondary" />
+        <Loader2 className="w-6 h-6 animate-spin text-primary" />
       </div>
     );
   }
@@ -60,7 +60,7 @@ export default function Profile() {
       <div className="container mx-auto px-4 py-8 max-w-lg">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <div className="flex items-center gap-3 mb-6">
-            <User className="w-7 h-7 text-secondary" />
+            <User className="w-7 h-7 text-primary" />
             <h1 className="text-3xl font-display font-bold text-foreground">Profile Settings</h1>
           </div>
 

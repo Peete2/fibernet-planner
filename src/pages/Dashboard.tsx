@@ -69,7 +69,7 @@ export default function Dashboard() {
           <div className="grid grid-cols-3 gap-4 mb-8">
             <div className="bg-card border border-border rounded-xl p-4 shadow-telecom">
               <div className="flex items-center gap-2 mb-1">
-                <FileText className="w-4 h-4 text-secondary" />
+                <FileText className="w-4 h-4 text-primary" />
                 <span className="text-xs text-muted-foreground uppercase tracking-wider">Total</span>
               </div>
               <p className="text-2xl font-display font-bold text-foreground">{apps.length}</p>
@@ -83,7 +83,7 @@ export default function Dashboard() {
             </div>
             <div className="bg-card border border-border rounded-xl p-4 shadow-telecom">
               <div className="flex items-center gap-2 mb-1">
-                <CheckCircle className="w-4 h-4 text-secondary" />
+                <CheckCircle className="w-4 h-4 text-primary" />
                 <span className="text-xs text-muted-foreground uppercase tracking-wider">Completed</span>
               </div>
               <p className="text-2xl font-display font-bold text-foreground">{completed}</p>
@@ -111,8 +111,8 @@ export default function Dashboard() {
                         <p className="font-display font-semibold text-foreground">{app.service}</p>
                       </div>
                       <span
-                        className="px-3 py-1 rounded-full text-xs font-medium"
-                        style={{ backgroundColor: statusColors[app.status] || "#888", color: "white" }}
+                        className="px-3 py-1 rounded-full text-xs font-medium text-primary-foreground"
+                        style={{ backgroundColor: statusColors[app.status] || "#888" }}
                       >
                         {app.status}
                       </span>
@@ -125,7 +125,7 @@ export default function Dashboard() {
                           key={s}
                           className="h-1.5 flex-1 rounded-full transition-colors"
                           style={{
-                            backgroundColor: i <= currentStep ? (statusColors[s] || "hsl(var(--secondary))") : "hsl(var(--muted))",
+                            backgroundColor: i <= currentStep ? (statusColors[s] || "hsl(var(--primary))") : "hsl(var(--muted))",
                           }}
                         />
                       ))}
