@@ -107,7 +107,7 @@ export default function Apply() {
           </p>
           <p className="text-muted-foreground text-sm">Track your application status on the Track page.</p>
           <div className="flex gap-3 justify-center mt-6">
-            <Button variant="hero" onClick={() => { setSubmittedRef(null); setForm({ name: "", email: "", phone: "", service: "", district: "", location: "", latitude: "", longitude: "" }); }}>
+            <Button variant="hero" onClick={() => { setSubmittedRef(null); setForm({ accountType: "individual", name: "", email: "", phone: "", service: "", district: "", location: "", latitude: "", longitude: "" }); }}>
               Submit Another
             </Button>
             <Button variant="outline" onClick={() => navigate("/track")}>
