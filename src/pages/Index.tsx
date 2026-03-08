@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { MapPin, Wifi, BarChart3, Shield, ArrowRight, Zap, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Footer from "@/components/Footer";
 import heroBg from "@/assets/hero-bg.jpg";
 
 const features = [
