@@ -607,8 +607,21 @@ export default function Admin() {
             {/* ========== MANAGE NODES ========== */}
             <TabsContent value="nodes">
               <div className="bg-card border border-border rounded-xl shadow-telecom overflow-hidden">
-                <div className="p-5 border-b border-border">
-                  <h3 className="font-display font-semibold text-foreground">Fiber Nodes ({fiberNodes.length})</h3>
+                <div className="p-5 border-b border-border space-y-3">
+                  <h3 className="font-display font-semibold text-foreground">Fiber Nodes ({filteredNodes.length}{filteredNodes.length !== fiberNodes.length ? ` of ${fiberNodes.length}` : ""})</h3>
+                  <div className="flex flex-wrap gap-2">
+                    <div className="relative flex-1 min-w-[200px]">
+                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input value={nodeSearch} onChange={(e) => setNodeSearch(e.target.value)} placeholder="Search nodes..." className="pl-9 h-9 text-sm" />
+                    </div>
+                    <Select value={nodeStatusFilter} onValueChange={setNodeStatusFilter}>
+                      <SelectTrigger className="h-9 w-40 text-sm"><SelectValue placeholder="All statuses" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Statuses</SelectItem>
+                        {["Active", "Planned", "Maintenance"].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
@@ -622,7 +635,7 @@ export default function Admin() {
                       </tr>
                     </thead>
                     <tbody>
-                      {fiberNodes.map((node) => (
+                      {filteredNodes.map((node) => (
                         <tr key={node.id} className="border-b border-border hover:bg-muted/30 transition-colors">
                           <td className="px-4 py-3 text-foreground">
                             {editingNode === node.id ? (
