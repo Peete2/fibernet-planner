@@ -122,8 +122,8 @@ export default function Apply() {
   }
 
   return (
-    <div className="pt-20 min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
+    <div className="pt-20 min-h-screen bg-background flex flex-col">
+      <div className="container mx-auto px-4 py-8 max-w-2xl flex-1">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-2">Apply for Service</h1>
           <p className="text-muted-foreground mb-8">Fill in your details and we'll get you connected.</p>
