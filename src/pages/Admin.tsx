@@ -369,7 +369,7 @@ export default function Admin() {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredApps.map((app) => (
+                      {paginatedApps.map((app) => (
                         <tr key={app.id} className="border-b border-border hover:bg-muted/30 transition-colors">
                           <td className="px-4 py-3 font-mono text-xs text-foreground">{app.ref_code}</td>
                           <td className="px-4 py-3 text-foreground">{app.customer_name}</td>
