@@ -128,6 +128,9 @@ export default function Track() {
                 {result.technician && (
                   <div><span className="text-muted-foreground">Technician:</span> <span className="text-foreground font-medium">{result.technician}</span></div>
                 )}
+                {result.scheduled_date && (
+                  <div><span className="text-muted-foreground">Scheduled:</span> <span className="text-foreground font-medium">{new Date(result.scheduled_date).toLocaleDateString()}</span></div>
+                )}
               </div>
             </motion.div>
           )}
