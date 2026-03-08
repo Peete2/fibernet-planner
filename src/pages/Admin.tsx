@@ -436,10 +436,39 @@ export default function Admin() {
                     </tbody>
                   </table>
                 </div>
+                {filteredApps.length > ITEMS_PER_PAGE && (
+                  <div className="flex items-center justify-between px-5 py-3 border-t border-border">
+                    <span className="text-sm text-muted-foreground">
+                      Showing {(appPage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(appPage * ITEMS_PER_PAGE, filteredApps.length)} of {filteredApps.length}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <Button variant="outline" size="icon" className="h-8 w-8" disabled={appPage <= 1} onClick={() => setAppPage((p) => p - 1)}>
+                        <ChevronLeft className="w-4 h-4" />
+                      </Button>
+                      {Array.from({ length: appTotalPages }, (_, i) => i + 1)
+                        .filter((p) => p === 1 || p === appTotalPages || Math.abs(p - appPage) <= 1)
+                        .reduce<(number | string)[]>((acc, p, idx, arr) => {
+                          if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push("...");
+                          acc.push(p);
+                          return acc;
+                        }, [])
+                        .map((p, i) =>
+                          typeof p === "string" ? (
+                            <span key={`e${i}`} className="px-1 text-muted-foreground text-sm">…</span>
+                          ) : (
+                            <Button key={p} variant={p === appPage ? "default" : "outline"} size="icon" className="h-8 w-8 text-xs" onClick={() => setAppPage(p)}>
+                              {p}
+                            </Button>
+                          )
+                        )}
+                      <Button variant="outline" size="icon" className="h-8 w-8" disabled={appPage >= appTotalPages} onClick={() => setAppPage((p) => p + 1)}>
+                        <ChevronRight className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             </TabsContent>
-
-            {/* ========== ASSIGN TECHNICIANS ========== */}
             <TabsContent value="assign">
               <div className="bg-card border border-border rounded-xl shadow-telecom overflow-hidden">
                 <div className="p-5 border-b border-border">
