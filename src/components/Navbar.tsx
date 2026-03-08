@@ -1,20 +1,32 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Wifi } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Menu, X, Wifi, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/contexts/AuthContext";
 
-const navLinks = [
+const publicLinks = [
   { to: "/", label: "Home" },
   { to: "/coverage", label: "Coverage Map" },
   { to: "/apply", label: "Apply" },
   { to: "/track", label: "Track" },
-  { to: "/admin", label: "Admin" },
 ];
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, profile, hasRole, signOut } = useAuth();
+
+  const navLinks = [
+    ...publicLinks,
+    ...(user && hasRole("admin") ? [{ to: "/admin", label: "Admin" }] : []),
+  ];
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 hero-gradient border-b border-secondary/20">
@@ -42,9 +54,22 @@ export default function Navbar() {
               {l.label}
             </Link>
           ))}
-          <Button variant="hero" size="sm" className="ml-3" asChild>
-            <Link to="/apply">Get Connected</Link>
-          </Button>
+
+          {user ? (
+            <div className="flex items-center gap-2 ml-3">
+              <span className="text-xs text-primary-foreground/60 flex items-center gap-1">
+                <User className="w-3 h-3" />
+                {profile?.full_name || user.email}
+              </span>
+              <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-primary-foreground/70 hover:text-primary-foreground">
+                <LogOut className="w-4 h-4" />
+              </Button>
+            </div>
+          ) : (
+            <Button variant="hero" size="sm" className="ml-3" asChild>
+              <Link to="/login">Sign In</Link>
+            </Button>
+          )}
         </div>
 
         <button className="md:hidden text-primary-foreground" onClick={() => setOpen(!open)}>
@@ -75,6 +100,15 @@ export default function Navbar() {
                   {l.label}
                 </Link>
               ))}
+              {user ? (
+                <button onClick={handleSignOut} className="block px-3 py-2 text-sm text-primary-foreground/70">
+                  Sign Out
+                </button>
+              ) : (
+                <Link to="/login" onClick={() => setOpen(false)} className="block px-3 py-2 text-sm text-secondary font-medium">
+                  Sign In
+                </Link>
+              )}
             </div>
           </motion.div>
         )}
