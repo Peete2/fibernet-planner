@@ -94,6 +94,10 @@
   }
 }
 
+#lovable-badge {
+  display: none !important;
+}
+
 @layer utilities {
   .hero-gradient {
     background: var(--hero-gradient);
