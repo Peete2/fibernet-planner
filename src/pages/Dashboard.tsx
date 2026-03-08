@@ -6,6 +6,7 @@ import { Clock, CheckCircle, Wrench, CalendarDays, FileText, MapPin } from "luci
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Footer from "@/components/Footer";
+import PageSkeleton from "@/components/PageSkeleton";
 
 const statusColors: Record<string, string> = {
   Submitted: "hsl(var(--status-submitted))",
@@ -48,13 +49,7 @@ export default function Dashboard() {
     fetch();
   }, [user]);
 
-  if (loading) {
-    return (
-      <div className="pt-20 min-h-screen flex items-center justify-center bg-background">
-        <div className="text-muted-foreground">Loading your applications...</div>
-      </div>
-    );
-  }
+  if (loading) return <PageSkeleton variant="dashboard" />;
 
   const completed = apps.filter((a) => a.status === "Completed").length;
   const pending = apps.filter((a) => a.status !== "Completed").length;

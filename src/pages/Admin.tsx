@@ -16,6 +16,7 @@ import SystemLogsPanel from "@/components/SystemLogsPanel";
 import AdminUserManagement from "@/components/AdminUserManagement";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import Footer from "@/components/Footer";
+import PageSkeleton from "@/components/PageSkeleton";
 
 const statusColors: Record<string, string> = {
   Submitted: "hsl(45 90% 50%)",
@@ -263,13 +264,7 @@ export default function Admin() {
     { label: "Pending", value: pendingApps.length, icon: Users, color: "text-accent" },
   ];
 
-  if (loading) {
-    return (
-      <div className="pt-20 min-h-screen flex items-center justify-center bg-background">
-        <div className="text-muted-foreground">Loading dashboard...</div>
-      </div>
-    );
-  }
+  if (loading) return <PageSkeleton variant="admin" />;
 
   return (
     <div className="pt-20 min-h-screen bg-background">

@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { DISTRICTS } from "@/lib/mock-data";
 import Footer from "@/components/Footer";
+import PageSkeleton from "@/components/PageSkeleton";
 
 const accountTypes = [
   { value: "individual", label: "Individual", icon: UserRound },
@@ -57,13 +58,7 @@ export default function Profile() {
     setSaving(false);
   };
 
-  if (!loaded) {
-    return (
-      <div className="pt-20 min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-6 h-6 animate-spin text-primary" />
-      </div>
-    );
-  }
+  if (!loaded) return <PageSkeleton variant="profile" />;
 
   return (
     <div className="pt-20 min-h-screen bg-background flex flex-col">

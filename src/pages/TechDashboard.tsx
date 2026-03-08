@@ -7,6 +7,7 @@ import { Wrench, MapPin, CalendarDays, Clock, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Footer from "@/components/Footer";
+import PageSkeleton from "@/components/PageSkeleton";
 
 const statusColors: Record<string, string> = {
   Submitted: "hsl(var(--status-submitted))",
@@ -59,13 +60,7 @@ export default function TechDashboard() {
     setUpdating(null);
   };
 
-  if (loading) {
-    return (
-      <div className="pt-20 min-h-screen flex items-center justify-center bg-background">
-        <div className="text-muted-foreground">Loading assigned jobs...</div>
-      </div>
-    );
-  }
+  if (loading) return <PageSkeleton variant="tech" />;
 
   const active = jobs.filter((j) => j.status !== "Completed");
   const completed = jobs.filter((j) => j.status === "Completed");
