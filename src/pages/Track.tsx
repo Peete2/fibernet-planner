@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Search, CheckCircle, Clock, Truck, ClipboardCheck, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { mockApplications, type Application } from "@/lib/mock-data";
+import { supabase } from "@/integrations/supabase/client";
 
 const statusConfig: Record<string, { icon: typeof Clock; color: string }> = {
   Submitted: { icon: FileText, color: "bg-status-submitted" },
@@ -15,18 +15,44 @@ const statusConfig: Record<string, { icon: typeof Clock; color: string }> = {
 
 const allStatuses = ["Submitted", "Site Survey", "Approved", "Installation Scheduled", "Completed"];
 
+interface AppResult {
+  ref_code: string;
+  customer_name: string;
+  service: string;
+  location: string | null;
+  district: string;
+  status: string;
+  technician: string | null;
+  created_at: string;
+}
+
 export default function Track() {
   const [query, setQuery] = useState("");
-  const [result, setResult] = useState<Application | null>(null);
+  const [result, setResult] = useState<AppResult | null>(null);
   const [notFound, setNotFound] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    const found = mockApplications.find(
-      (a) => a.id.toLowerCase() === query.trim().toLowerCase()
-    );
-    setResult(found || null);
-    setNotFound(!found);
+    if (!query.trim()) return;
+
+    setLoading(true);
+    setNotFound(false);
+    setResult(null);
+
+    const { data, error } = await supabase
+      .from("applications")
+      .select("ref_code, customer_name, service, location, district, status, technician, created_at")
+      .eq("ref_code", query.trim().toUpperCase())
+      .maybeSingle();
+
+    setLoading(false);
+
+    if (error || !data) {
+      setNotFound(true);
+    } else {
+      setResult(data);
+    }
   };
 
   const currentIndex = result ? allStatuses.indexOf(result.status) : -1;
@@ -47,14 +73,14 @@ export default function Track() {
               placeholder="e.g. ETL-2026-001"
               className="flex-1"
             />
-            <Button type="submit" variant="default">
-              <Search className="w-4 h-4 mr-2" /> Search
+            <Button type="submit" variant="default" disabled={loading}>
+              <Search className="w-4 h-4 mr-2" /> {loading ? "Searching..." : "Search"}
             </Button>
           </form>
 
           {notFound && (
             <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm">
-              No application found. Try: ETL-2026-001 through ETL-2026-008
+              No application found with that reference code.
             </div>
           )}
 
@@ -67,9 +93,9 @@ export default function Track() {
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <p className="text-sm text-muted-foreground">Application ID</p>
-                  <p className="text-xl font-display font-bold text-foreground">{result.id}</p>
+                  <p className="text-xl font-display font-bold text-foreground">{result.ref_code}</p>
                 </div>
-                <div className={`px-3 py-1 rounded-full text-xs font-semibold text-primary-foreground ${statusConfig[result.status]?.color}`}>
+                <div className={`px-3 py-1 rounded-full text-xs font-semibold text-primary-foreground ${statusConfig[result.status]?.color || "bg-muted"}`}>
                   {result.status}
                 </div>
               </div>
@@ -88,19 +114,16 @@ export default function Track() {
                       <p className={`text-[10px] mt-1 text-center ${active ? "text-foreground font-medium" : "text-muted-foreground"}`}>
                         {s}
                       </p>
-                      {i < allStatuses.length - 1 && (
-                        <div className={`h-0.5 w-full mt-1 ${i < currentIndex ? "bg-secondary" : "bg-muted"}`} />
-                      )}
                     </div>
                   );
                 })}
               </div>
 
               <div className="grid sm:grid-cols-2 gap-4 text-sm">
-                <div><span className="text-muted-foreground">Customer:</span> <span className="text-foreground font-medium">{result.customerName}</span></div>
+                <div><span className="text-muted-foreground">Customer:</span> <span className="text-foreground font-medium">{result.customer_name}</span></div>
                 <div><span className="text-muted-foreground">Service:</span> <span className="text-foreground font-medium">{result.service}</span></div>
-                <div><span className="text-muted-foreground">Location:</span> <span className="text-foreground font-medium">{result.location}, {result.district}</span></div>
-                <div><span className="text-muted-foreground">Applied:</span> <span className="text-foreground font-medium">{result.dateCreated}</span></div>
+                <div><span className="text-muted-foreground">Location:</span> <span className="text-foreground font-medium">{result.location || "—"}, {result.district}</span></div>
+                <div><span className="text-muted-foreground">Applied:</span> <span className="text-foreground font-medium">{new Date(result.created_at).toLocaleDateString()}</span></div>
                 {result.technician && (
                   <div><span className="text-muted-foreground">Technician:</span> <span className="text-foreground font-medium">{result.technician}</span></div>
                 )}
