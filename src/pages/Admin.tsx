@@ -14,6 +14,8 @@ import AdminDrawMap from "@/components/AdminDrawMap";
 import CreateApplicationDialog from "@/components/CreateApplicationDialog";
 import SystemLogsPanel from "@/components/SystemLogsPanel";
 import AdminUserManagement from "@/components/AdminUserManagement";
+import ConfirmDialog from "@/components/ConfirmDialog";
+import Footer from "@/components/Footer";
 
 const statusColors: Record<string, string> = {
   Submitted: "hsl(45 90% 50%)",
