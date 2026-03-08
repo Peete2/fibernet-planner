@@ -40,7 +40,7 @@ export default function Coverage() {
 
           <div className="mt-6 grid sm:grid-cols-3 gap-4">
             {[
-              { color: "bg-secondary", label: "Active Node" },
+              { color: "bg-primary", label: "Active Node" },
               { color: "bg-accent", label: "Planned Node" },
               { color: "bg-destructive", label: "Maintenance" },
             ].map((item) => (
