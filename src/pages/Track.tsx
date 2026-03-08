@@ -4,6 +4,7 @@ import { Search, CheckCircle, Clock, Truck, ClipboardCheck, FileText } from "luc
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
+import Footer from "@/components/Footer";
 
 const statusConfig: Record<string, { icon: typeof Clock; color: string }> = {
   Submitted: { icon: FileText, color: "bg-status-submitted" },
