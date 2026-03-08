@@ -677,7 +677,7 @@ export default function Admin() {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredNodes.map((node) => (
+                      {paginatedNodes.map((node) => (
                         <tr key={node.id} className="border-b border-border hover:bg-muted/30 transition-colors">
                           <td className="px-4 py-3 text-foreground">
                             {editingNode === node.id ? (
