@@ -101,14 +101,14 @@ export default function Apply() {
     return (
       <div className="pt-20 min-h-screen bg-background flex items-center justify-center">
         <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center p-8">
-          <CheckCircle className="w-16 h-16 text-secondary mx-auto mb-4" />
+          <CheckCircle className="w-16 h-16 text-primary mx-auto mb-4" />
           <h2 className="text-2xl font-display font-bold text-foreground mb-2">Application Submitted!</h2>
           <p className="text-muted-foreground mb-2">
             Your reference: <strong className="text-foreground">{submittedRef}</strong>
           </p>
           <p className="text-muted-foreground text-sm">Track your application status on the Track page.</p>
           <div className="flex gap-3 justify-center mt-6">
-            <Button variant="hero" onClick={() => { setSubmittedRef(null); setForm({ accountType: "individual", name: "", email: "", phone: "", service: "", district: "", location: "", latitude: "", longitude: "" }); }}>
+            <Button onClick={() => { setSubmittedRef(null); setForm({ accountType: "individual", name: "", email: "", phone: "", service: "", district: "", location: "", latitude: "", longitude: "" }); }}>
               Submit Another
             </Button>
             <Button variant="outline" onClick={() => navigate("/track")}>
@@ -141,7 +141,7 @@ export default function Apply() {
                     htmlFor={`apply-type-${value}`}
                     className={`flex flex-col items-center gap-1.5 rounded-lg border-2 p-3 cursor-pointer transition-colors ${
                       form.accountType === value
-                        ? "border-secondary bg-secondary/10 text-secondary"
+                        ? "border-primary bg-primary/10 text-primary"
                         : "border-border text-muted-foreground hover:border-muted-foreground/40"
                     }`}
                   >
@@ -214,7 +214,7 @@ export default function Apply() {
               <p className="text-xs text-muted-foreground mt-1">Click the pin icon to auto-detect your location</p>
             </div>
 
-            <Button type="submit" variant="hero" size="lg" className="w-full" disabled={submitting}>
+            <Button type="submit" size="lg" className="w-full" disabled={submitting}>
               {submitting ? "Submitting..." : "Submit Application"}
             </Button>
           </form>

@@ -74,7 +74,7 @@ export default function TechDashboard() {
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <div className="flex items-center gap-3 mb-6">
-            <Wrench className="w-7 h-7 text-secondary" />
+            <Wrench className="w-7 h-7 text-primary" />
             <div>
               <h1 className="text-3xl font-display font-bold text-foreground">Technician Dashboard</h1>
               <p className="text-muted-foreground">Welcome, {profile?.full_name}. Here are your assigned jobs.</p>
@@ -134,8 +134,8 @@ function JobCard({ job, onStatusChange, updating }: { job: Job; onStatusChange: 
           <p className="text-sm text-muted-foreground">{job.service}</p>
         </div>
         <span
-          className="px-3 py-1 rounded-full text-xs font-medium"
-          style={{ backgroundColor: statusColors[job.status] || "#888", color: "white" }}
+          className="px-3 py-1 rounded-full text-xs font-medium text-primary-foreground"
+          style={{ backgroundColor: statusColors[job.status] || "#888" }}
         >
           {job.status}
         </span>

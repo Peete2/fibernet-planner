@@ -26,7 +26,6 @@ export default function AdminLogin() {
 
     try {
       if (isSignUp) {
-        // Call edge function for admin signup with invite code
         const { data, error } = await supabase.functions.invoke("admin-signup", {
           body: {
             email: form.email,
@@ -59,7 +58,7 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center hero-gradient px-4">
+    <div className="min-h-screen flex items-center justify-center bg-primary px-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -175,7 +174,6 @@ export default function AdminLogin() {
 
           <Button
             type="submit"
-            variant="hero"
             size="lg"
             className="w-full"
             disabled={loading}
@@ -191,7 +189,7 @@ export default function AdminLogin() {
             <button
               type="button"
               onClick={() => setIsSignUp(!isSignUp)}
-              className="text-sm text-secondary hover:underline"
+              className="text-sm text-primary hover:underline"
             >
               {isSignUp
                 ? "Already an admin? Sign in"

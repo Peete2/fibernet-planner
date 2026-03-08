@@ -34,11 +34,11 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 hero-gradient border-b border-secondary/20">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-primary border-b border-primary-foreground/10">
       <div className="container mx-auto flex items-center justify-between h-16 px-4">
         <Link to="/" className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center">
-            <Wifi className="w-5 h-5 text-secondary-foreground" />
+          <div className="w-9 h-9 rounded-lg bg-primary-foreground flex items-center justify-center">
+            <Wifi className="w-5 h-5 text-primary" />
           </div>
           <span className="font-display font-bold text-lg text-primary-foreground tracking-tight">
             ETL Fiber
@@ -52,7 +52,7 @@ export default function Navbar() {
               to={l.to}
               className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                 location.pathname === l.to
-                  ? "bg-secondary/20 text-secondary"
+                  ? "bg-primary-foreground/20 text-primary-foreground"
                   : "text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/5"
               }`}
             >
@@ -72,7 +72,7 @@ export default function Navbar() {
               </Button>
             </div>
           ) : (
-            <Button variant="hero" size="sm" className="ml-3" asChild>
+            <Button size="sm" className="ml-3 bg-primary-foreground text-primary hover:bg-primary-foreground/90" asChild>
               <Link to="/login">Sign In</Link>
             </Button>
           )}
@@ -89,7 +89,7 @@ export default function Navbar() {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="md:hidden hero-gradient overflow-hidden border-t border-secondary/20"
+            className="md:hidden bg-primary overflow-hidden border-t border-primary-foreground/10"
           >
             <div className="px-4 py-3 space-y-1">
               {navLinks.map((l) => (
@@ -99,7 +99,7 @@ export default function Navbar() {
                   onClick={() => setOpen(false)}
                   className={`block px-3 py-2 rounded-md text-sm font-medium ${
                     location.pathname === l.to
-                      ? "bg-secondary/20 text-secondary"
+                      ? "bg-primary-foreground/20 text-primary-foreground"
                       : "text-primary-foreground/70"
                   }`}
                 >
@@ -111,7 +111,7 @@ export default function Navbar() {
                   Sign Out
                 </button>
               ) : (
-                <Link to="/login" onClick={() => setOpen(false)} className="block px-3 py-2 text-sm text-secondary font-medium">
+                <Link to="/login" onClick={() => setOpen(false)} className="block px-3 py-2 text-sm text-primary-foreground font-medium">
                   Sign In
                 </Link>
               )}

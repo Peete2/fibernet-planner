@@ -22,31 +22,31 @@ export default function Index() {
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url(${heroBg})` }}
         />
-        <div className="absolute inset-0 hero-gradient opacity-80" />
+        <div className="absolute inset-0 bg-primary opacity-85" />
         <div className="relative z-10 container mx-auto px-4 text-center">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <span className="inline-block px-4 py-1.5 rounded-full bg-secondary/20 text-secondary text-sm font-medium mb-6 border border-secondary/30">
+            <span className="inline-block px-4 py-1.5 rounded-full bg-primary-foreground/10 text-primary-foreground text-sm font-medium mb-6 border border-primary-foreground/20">
               Econet Telecom Lesotho
             </span>
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-display font-bold text-primary-foreground leading-tight mb-6">
               Connecting Lesotho<br />
-              <span className="text-secondary text-glow">to the Future</span>
+              <span className="text-primary-foreground/80">to the Future</span>
             </h1>
             <p className="text-lg md:text-xl text-primary-foreground/70 max-w-2xl mx-auto mb-10">
               High-speed fiber optic broadband across all 10 districts.
               Apply online, track your installation, and get connected in days.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button variant="hero" size="lg" asChild>
+              <Button size="lg" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold shadow-lg" asChild>
                 <Link to="/apply">
                   Apply Now <ArrowRight className="w-4 h-4 ml-1" />
                 </Link>
               </Button>
-              <Button variant="glow" size="lg" asChild>
+              <Button variant="outline" size="lg" className="border-primary-foreground/40 text-primary-foreground hover:bg-primary-foreground/10" asChild>
                 <Link to="/coverage">Check Coverage</Link>
               </Button>
             </div>
@@ -73,10 +73,10 @@ export default function Index() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 }}
                 viewport={{ once: true }}
-                className="group p-6 rounded-xl bg-card border border-border hover:border-secondary/50 hover:shadow-glow transition-all duration-300"
+                className="group p-6 rounded-xl bg-card border border-border hover:border-primary/30 hover:shadow-telecom transition-all duration-300"
               >
-                <div className="w-12 h-12 rounded-lg bg-secondary/10 flex items-center justify-center mb-4 group-hover:bg-secondary/20 transition-colors">
-                  <f.icon className="w-6 h-6 text-secondary" />
+                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/15 transition-colors">
+                  <f.icon className="w-6 h-6 text-primary" />
                 </div>
                 <h3 className="font-display font-semibold text-lg text-foreground mb-2">{f.title}</h3>
                 <p className="text-muted-foreground text-sm">{f.desc}</p>
@@ -87,7 +87,7 @@ export default function Index() {
       </section>
 
       {/* CTA */}
-      <section className="py-16 hero-gradient">
+      <section className="py-16 bg-primary">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl md:text-4xl font-display font-bold text-primary-foreground mb-4">
             Ready to Get Connected?
@@ -95,7 +95,7 @@ export default function Index() {
           <p className="text-primary-foreground/70 mb-8 max-w-lg mx-auto">
             Check if fiber is available in your area and apply online in minutes.
           </p>
-          <Button variant="hero" size="lg" asChild>
+          <Button size="lg" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold shadow-lg" asChild>
             <Link to="/apply">Start Application <ArrowRight className="w-4 h-4 ml-1" /></Link>
           </Button>
         </div>

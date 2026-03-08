@@ -55,15 +55,15 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center hero-gradient px-4">
+    <div className="min-h-screen flex items-center justify-center bg-primary px-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md"
       >
         <div className="text-center mb-8">
-          <div className="w-14 h-14 rounded-xl bg-secondary flex items-center justify-center mx-auto mb-4">
-            <Wifi className="w-7 h-7 text-secondary-foreground" />
+          <div className="w-14 h-14 rounded-xl bg-primary-foreground flex items-center justify-center mx-auto mb-4">
+            <Wifi className="w-7 h-7 text-primary" />
           </div>
           <h1 className="text-2xl font-display font-bold text-primary-foreground">
             {isSignUp ? "Create Account" : "Welcome Back"}
@@ -89,7 +89,7 @@ export default function Login() {
                       htmlFor={`type-${value}`}
                       className={`flex flex-col items-center gap-1.5 rounded-lg border-2 p-3 cursor-pointer transition-colors ${
                         form.accountType === value
-                          ? "border-secondary bg-secondary/10 text-secondary"
+                          ? "border-primary bg-primary/10 text-primary"
                           : "border-border text-muted-foreground hover:border-muted-foreground/40"
                       }`}
                     >
@@ -160,7 +160,7 @@ export default function Login() {
             </div>
           </div>
 
-          <Button type="submit" variant="hero" size="lg" className="w-full" disabled={loading}>
+          <Button type="submit" size="lg" className="w-full" disabled={loading}>
             {loading ? "Loading..." : isSignUp ? "Create Account" : "Sign In"}
           </Button>
 
@@ -168,7 +168,7 @@ export default function Login() {
             <button
               type="button"
               onClick={() => setIsSignUp(!isSignUp)}
-              className="text-sm text-secondary hover:underline"
+              className="text-sm text-primary hover:underline"
             >
               {isSignUp ? "Already have an account? Sign in" : "Don't have an account? Sign up"}
             </button>
