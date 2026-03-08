@@ -809,6 +809,7 @@ export default function Admin() {
           </Tabs>
         </motion.div>
       </div>
+      <Footer />
     </div>
   );
 }
