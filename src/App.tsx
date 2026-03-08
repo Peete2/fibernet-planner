@@ -12,6 +12,7 @@ import Apply from "./pages/Apply";
 import Track from "./pages/Track";
 import Admin from "./pages/Admin";
 import Login from "./pages/Login";
+import AdminLogin from "./pages/AdminLogin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/apply" element={<Apply />} />
             <Route path="/track" element={<Track />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/admin-login" element={<AdminLogin />} />
             <Route
               path="/admin"
               element={
