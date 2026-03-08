@@ -263,13 +263,7 @@ export default function Admin() {
     { label: "Pending", value: pendingApps.length, icon: Users, color: "text-accent" },
   ];
 
-  if (loading) {
-    return (
-      <div className="pt-20 min-h-screen flex items-center justify-center bg-background">
-        <div className="text-muted-foreground">Loading dashboard...</div>
-      </div>
-    );
-  }
+  if (loading) return <PageSkeleton variant="admin" />;
 
   return (
     <div className="pt-20 min-h-screen bg-background">

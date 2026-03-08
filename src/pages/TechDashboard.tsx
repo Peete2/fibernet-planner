@@ -59,13 +59,7 @@ export default function TechDashboard() {
     setUpdating(null);
   };
 
-  if (loading) {
-    return (
-      <div className="pt-20 min-h-screen flex items-center justify-center bg-background">
-        <div className="text-muted-foreground">Loading assigned jobs...</div>
-      </div>
-    );
-  }
+  if (loading) return <PageSkeleton variant="tech" />;
 
   const active = jobs.filter((j) => j.status !== "Completed");
   const completed = jobs.filter((j) => j.status === "Completed");

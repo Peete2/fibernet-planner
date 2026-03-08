@@ -48,13 +48,7 @@ export default function Dashboard() {
     fetch();
   }, [user]);
 
-  if (loading) {
-    return (
-      <div className="pt-20 min-h-screen flex items-center justify-center bg-background">
-        <div className="text-muted-foreground">Loading your applications...</div>
-      </div>
-    );
-  }
+  if (loading) return <PageSkeleton variant="dashboard" />;
 
   const completed = apps.filter((a) => a.status === "Completed").length;
   const pending = apps.filter((a) => a.status !== "Completed").length;

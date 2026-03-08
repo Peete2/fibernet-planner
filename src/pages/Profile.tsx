@@ -57,13 +57,7 @@ export default function Profile() {
     setSaving(false);
   };
 
-  if (!loaded) {
-    return (
-      <div className="pt-20 min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-6 h-6 animate-spin text-primary" />
-      </div>
-    );
-  }
+  if (!loaded) return <PageSkeleton variant="profile" />;
 
   return (
     <div className="pt-20 min-h-screen bg-background flex flex-col">
