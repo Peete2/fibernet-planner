@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import LeafletMap from "@/components/LeafletMap";
 import AdminDrawMap from "@/components/AdminDrawMap";
+import CreateApplicationDialog from "@/components/CreateApplicationDialog";
 
 const statusColors: Record<string, string> = {
   Submitted: "hsl(45 90% 50%)",
