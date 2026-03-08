@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import LeafletMap from "@/components/LeafletMap";
 import AdminDrawMap from "@/components/AdminDrawMap";
 import CreateApplicationDialog from "@/components/CreateApplicationDialog";
+import SystemLogsPanel from "@/components/SystemLogsPanel";
 
 const statusColors: Record<string, string> = {
   Submitted: "hsl(45 90% 50%)",
