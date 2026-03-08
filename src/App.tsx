@@ -12,6 +12,7 @@ import Apply from "./pages/Apply";
 import Track from "./pages/Track";
 import Admin from "./pages/Admin";
 import Login from "./pages/Login";
+import AdminLogin from "./pages/AdminLogin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
