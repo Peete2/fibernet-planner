@@ -61,7 +61,7 @@ export default function Dashboard() {
 
   return (
     <div className="pt-20 min-h-screen bg-background flex flex-col">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="container mx-auto px-4 py-8 max-w-4xl flex-1">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="text-3xl font-display font-bold text-foreground mb-2">My Applications</h1>
           <p className="text-muted-foreground mb-6">Track all your service applications in one place.</p>
