@@ -19,6 +19,7 @@ interface LeafletMapProps {
   showHeatmap?: boolean;
   showRoutes?: boolean;
   showNodes?: boolean;
+  showLocateMe?: boolean;
   height?: string;
   center?: [number, number];
   zoom?: number;
