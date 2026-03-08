@@ -128,7 +128,6 @@ export default function Admin() {
 
   // Filtered applications
   const filteredApps = useMemo(() => {
-    setAppPage(1);
     return applications.filter((app) => {
       const matchesSearch = !appSearch || 
         app.customer_name.toLowerCase().includes(appSearch.toLowerCase()) ||
