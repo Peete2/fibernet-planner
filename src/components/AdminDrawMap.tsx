@@ -83,7 +83,7 @@ export default function AdminDrawMap({ onRouteCreated, onNodeCreated }: AdminDra
         polyline: {
           shapeOptions: { color: "#14b8a6", weight: 4 },
         },
-        marker: true,
+        marker: {} as L.DrawOptions.MarkerOptions,
         polygon: false,
         rectangle: false,
         circle: false,
