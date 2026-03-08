@@ -72,7 +72,7 @@ export default function NotificationBell() {
         <div className="flex items-center justify-between px-4 py-3 border-b border-border">
           <h4 className="font-semibold text-sm text-foreground">Notifications</h4>
           {unreadCount > 0 && (
-            <button onClick={markAllRead} className="text-xs text-secondary hover:underline">
+            <button onClick={markAllRead} className="text-xs text-primary hover:underline">
               Mark all read
             </button>
           )}
