@@ -124,6 +124,7 @@ export default function Admin() {
 
   // Filtered applications
   const filteredApps = useMemo(() => {
+    setAppPage(1);
     return applications.filter((app) => {
       const matchesSearch = !appSearch || 
         app.customer_name.toLowerCase().includes(appSearch.toLowerCase()) ||
@@ -138,12 +139,19 @@ export default function Admin() {
 
   // Filtered nodes
   const filteredNodes = useMemo(() => {
+    setNodePage(1);
     return fiberNodes.filter((node) => {
       const matchesSearch = !nodeSearch || node.name.toLowerCase().includes(nodeSearch.toLowerCase());
       const matchesStatus = nodeStatusFilter === "all" || node.status === nodeStatusFilter;
       return matchesSearch && matchesStatus;
     });
   }, [fiberNodes, nodeSearch, nodeStatusFilter]);
+
+  // Paginated data
+  const appTotalPages = Math.max(1, Math.ceil(filteredApps.length / ITEMS_PER_PAGE));
+  const paginatedApps = filteredApps.slice((appPage - 1) * ITEMS_PER_PAGE, appPage * ITEMS_PER_PAGE);
+  const nodeTotalPages = Math.max(1, Math.ceil(filteredNodes.length / ITEMS_PER_PAGE));
+  const paginatedNodes = filteredNodes.slice((nodePage - 1) * ITEMS_PER_PAGE, nodePage * ITEMS_PER_PAGE);
 
   // Application CRUD
   const startEdit = (app: Application) => {
