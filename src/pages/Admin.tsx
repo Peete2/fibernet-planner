@@ -417,8 +417,8 @@ export default function Admin() {
                           </td>
                         </tr>
                       ))}
-                      {applications.length === 0 && (
-                        <tr><td colSpan={9} className="px-4 py-8 text-center text-muted-foreground">No applications yet.</td></tr>
+                      {filteredApps.length === 0 && (
+                        <tr><td colSpan={9} className="px-4 py-8 text-center text-muted-foreground">{applications.length === 0 ? "No applications yet." : "No applications match your filters."}</td></tr>
                       )}
                     </tbody>
                   </table>
