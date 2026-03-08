@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Wrench, MapPin, CalendarDays, Clock, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import Footer from "@/components/Footer";
 
 const statusColors: Record<string, string> = {
   Submitted: "hsl(var(--status-submitted))",
