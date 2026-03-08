@@ -13,6 +13,9 @@ import Track from "./pages/Track";
 import Admin from "./pages/Admin";
 import Login from "./pages/Login";
 import AdminLogin from "./pages/AdminLogin";
+import Dashboard from "./pages/Dashboard";
+import TechDashboard from "./pages/TechDashboard";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
