@@ -1,19 +1,26 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Wifi, Mail, Lock, User, Eye, EyeOff } from "lucide-react";
+import { Wifi, Mail, Lock, User, Eye, EyeOff, Building2, School, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+const accountTypes = [
+  { value: "individual", label: "Individual", icon: UserRound },
+  { value: "school", label: "School", icon: School },
+  { value: "business", label: "Business", icon: Building2 },
+] as const;
 
 export default function Login() {
   const navigate = useNavigate();
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({ email: "", password: "", fullName: "" });
+  const [form, setForm] = useState({ email: "", password: "", fullName: "", accountType: "individual" });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,7 +32,7 @@ export default function Login() {
           email: form.email,
           password: form.password,
           options: {
-            data: { full_name: form.fullName },
+            data: { full_name: form.fullName, account_type: form.accountType },
             emailRedirectTo: window.location.origin,
           },
         });
@@ -68,19 +75,49 @@ export default function Login() {
 
         <form onSubmit={handleSubmit} className="bg-card border border-border rounded-xl p-6 shadow-telecom space-y-4">
           {isSignUp && (
-            <div>
-              <Label htmlFor="fullName" className="text-foreground">Full Name</Label>
-              <div className="relative mt-1">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  id="fullName"
-                  value={form.fullName}
-                  onChange={(e) => setForm({ ...form, fullName: e.target.value })}
-                  placeholder="Thabo Mokhesi"
-                  className="pl-10"
-                />
+            <>
+              <div>
+                <Label className="text-foreground mb-3 block">Account Type</Label>
+                <RadioGroup
+                  value={form.accountType}
+                  onValueChange={(val) => setForm({ ...form, accountType: val })}
+                  className="grid grid-cols-3 gap-2"
+                >
+                  {accountTypes.map(({ value, label, icon: Icon }) => (
+                    <Label
+                      key={value}
+                      htmlFor={`type-${value}`}
+                      className={`flex flex-col items-center gap-1.5 rounded-lg border-2 p-3 cursor-pointer transition-colors ${
+                        form.accountType === value
+                          ? "border-secondary bg-secondary/10 text-secondary"
+                          : "border-border text-muted-foreground hover:border-muted-foreground/40"
+                      }`}
+                    >
+                      <RadioGroupItem value={value} id={`type-${value}`} className="sr-only" />
+                      <Icon className="w-5 h-5" />
+                      <span className="text-xs font-medium">{label}</span>
+                    </Label>
+                  ))}
+                </RadioGroup>
               </div>
-            </div>
+
+              <div>
+                <Label htmlFor="fullName" className="text-foreground">
+                  {form.accountType === "individual" ? "Full Name" : form.accountType === "school" ? "School Name" : "Business Name"}
+                </Label>
+                <div className="relative mt-1">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="fullName"
+                    value={form.fullName}
+                    onChange={(e) => setForm({ ...form, fullName: e.target.value })}
+                    placeholder={form.accountType === "individual" ? "Thabo Mokhesi" : form.accountType === "school" ? "Maseru High School" : "ETL Solutions Ltd"}
+                    className="pl-10"
+                    required
+                  />
+                </div>
+              </div>
+            </>
           )}
 
           <div>
