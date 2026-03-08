@@ -640,7 +640,7 @@ export default function Admin() {
                             <td className="px-4 py-3 text-foreground">{r.route_name}</td>
                             <td className="px-4 py-3 text-muted-foreground">{new Date(r.created_at).toLocaleDateString()}</td>
                             <td className="px-4 py-3">
-                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteRoute(r.id)}><Trash2 className="w-3.5 h-3.5 text-destructive" /></Button>
+                              <ConfirmDialog onConfirm={() => deleteRoute(r.id)} title="Delete route?" description={`This will permanently delete route "${r.route_name}".`} />
                             </td>
                           </tr>
                         ))}
