@@ -727,7 +727,7 @@ export default function Admin() {
                               ) : (
                                 <>
                                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => startNodeEdit(node)}><Pencil className="w-3.5 h-3.5" /></Button>
-                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteNode(node.id)}><Trash2 className="w-3.5 h-3.5 text-destructive" /></Button>
+                                  <ConfirmDialog onConfirm={() => deleteNode(node.id)} title="Delete node?" description={`This will permanently delete node "${node.name}".`} />
                                 </>
                               )}
                             </div>
