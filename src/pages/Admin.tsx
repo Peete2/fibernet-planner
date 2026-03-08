@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from "recharts";
 import { DISTRICTS } from "@/lib/mock-data";
-import { Users, FileText, CheckCircle, Wifi, Pencil, Trash2, X, Save, BarChart3, Route, Flame, CalendarDays, UserCheck, Plus } from "lucide-react";
+import { Users, FileText, CheckCircle, Wifi, Pencil, Trash2, X, Save, BarChart3, Route, Flame, CalendarDays, UserCheck, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -68,6 +68,13 @@ export default function Admin() {
   const [loading, setLoading] = useState(true);
   const [drawMapKey, setDrawMapKey] = useState(0);
 
+  // Search & filter state
+  const [appSearch, setAppSearch] = useState("");
+  const [appStatusFilter, setAppStatusFilter] = useState("all");
+  const [appDistrictFilter, setAppDistrictFilter] = useState("all");
+  const [nodeSearch, setNodeSearch] = useState("");
+  const [nodeStatusFilter, setNodeStatusFilter] = useState("all");
+
   // Assignment state for the Assign tab
   const [assignTech, setAssignTech] = useState<Record<string, string>>({});
   const [assignDate, setAssignDate] = useState<Record<string, string>>({});
@@ -98,6 +105,40 @@ export default function Admin() {
   };
 
   useEffect(() => { fetchData(); }, []);
+
+  // Realtime subscription for applications
+  useEffect(() => {
+    const channel = supabase
+      .channel('admin-applications')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'applications' }, () => {
+        fetchData();
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
+  // Filtered applications
+  const filteredApps = useMemo(() => {
+    return applications.filter((app) => {
+      const matchesSearch = !appSearch || 
+        app.customer_name.toLowerCase().includes(appSearch.toLowerCase()) ||
+        app.ref_code.toLowerCase().includes(appSearch.toLowerCase()) ||
+        (app.location || "").toLowerCase().includes(appSearch.toLowerCase()) ||
+        (app.technician || "").toLowerCase().includes(appSearch.toLowerCase());
+      const matchesStatus = appStatusFilter === "all" || app.status === appStatusFilter;
+      const matchesDistrict = appDistrictFilter === "all" || app.district === appDistrictFilter;
+      return matchesSearch && matchesStatus && matchesDistrict;
+    });
+  }, [applications, appSearch, appStatusFilter, appDistrictFilter]);
+
+  // Filtered nodes
+  const filteredNodes = useMemo(() => {
+    return fiberNodes.filter((node) => {
+      const matchesSearch = !nodeSearch || node.name.toLowerCase().includes(nodeSearch.toLowerCase());
+      const matchesStatus = nodeStatusFilter === "all" || node.status === nodeStatusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [fiberNodes, nodeSearch, nodeStatusFilter]);
 
   // Application CRUD
   const startEdit = (app: Application) => {
@@ -273,9 +314,31 @@ export default function Admin() {
             {/* ========== APPLICATIONS ========== */}
             <TabsContent value="applications">
               <div className="bg-card border border-border rounded-xl shadow-telecom overflow-hidden">
-                <div className="p-5 border-b border-border flex items-center justify-between">
-                  <h3 className="font-display font-semibold text-foreground">All Applications ({applications.length})</h3>
-                  <CreateApplicationDialog onCreated={fetchData} />
+                <div className="p-5 border-b border-border space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-display font-semibold text-foreground">All Applications ({filteredApps.length}{filteredApps.length !== applications.length ? ` of ${applications.length}` : ""})</h3>
+                    <CreateApplicationDialog onCreated={fetchData} />
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <div className="relative flex-1 min-w-[200px]">
+                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input value={appSearch} onChange={(e) => setAppSearch(e.target.value)} placeholder="Search by name, ref, location..." className="pl-9 h-9 text-sm" />
+                    </div>
+                    <Select value={appStatusFilter} onValueChange={setAppStatusFilter}>
+                      <SelectTrigger className="h-9 w-44 text-sm"><SelectValue placeholder="All statuses" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Statuses</SelectItem>
+                        {allStatuses.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <Select value={appDistrictFilter} onValueChange={setAppDistrictFilter}>
+                      <SelectTrigger className="h-9 w-40 text-sm"><SelectValue placeholder="All districts" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Districts</SelectItem>
+                        {DISTRICTS.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
@@ -293,7 +356,7 @@ export default function Admin() {
                       </tr>
                     </thead>
                     <tbody>
-                      {applications.map((app) => (
+                      {filteredApps.map((app) => (
                         <tr key={app.id} className="border-b border-border hover:bg-muted/30 transition-colors">
                           <td className="px-4 py-3 font-mono text-xs text-foreground">{app.ref_code}</td>
                           <td className="px-4 py-3 text-foreground">{app.customer_name}</td>
@@ -354,8 +417,8 @@ export default function Admin() {
                           </td>
                         </tr>
                       ))}
-                      {applications.length === 0 && (
-                        <tr><td colSpan={9} className="px-4 py-8 text-center text-muted-foreground">No applications yet.</td></tr>
+                      {filteredApps.length === 0 && (
+                        <tr><td colSpan={9} className="px-4 py-8 text-center text-muted-foreground">{applications.length === 0 ? "No applications yet." : "No applications match your filters."}</td></tr>
                       )}
                     </tbody>
                   </table>
@@ -544,8 +607,21 @@ export default function Admin() {
             {/* ========== MANAGE NODES ========== */}
             <TabsContent value="nodes">
               <div className="bg-card border border-border rounded-xl shadow-telecom overflow-hidden">
-                <div className="p-5 border-b border-border">
-                  <h3 className="font-display font-semibold text-foreground">Fiber Nodes ({fiberNodes.length})</h3>
+                <div className="p-5 border-b border-border space-y-3">
+                  <h3 className="font-display font-semibold text-foreground">Fiber Nodes ({filteredNodes.length}{filteredNodes.length !== fiberNodes.length ? ` of ${fiberNodes.length}` : ""})</h3>
+                  <div className="flex flex-wrap gap-2">
+                    <div className="relative flex-1 min-w-[200px]">
+                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input value={nodeSearch} onChange={(e) => setNodeSearch(e.target.value)} placeholder="Search nodes..." className="pl-9 h-9 text-sm" />
+                    </div>
+                    <Select value={nodeStatusFilter} onValueChange={setNodeStatusFilter}>
+                      <SelectTrigger className="h-9 w-40 text-sm"><SelectValue placeholder="All statuses" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Statuses</SelectItem>
+                        {["Active", "Planned", "Maintenance"].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
@@ -559,7 +635,7 @@ export default function Admin() {
                       </tr>
                     </thead>
                     <tbody>
-                      {fiberNodes.map((node) => (
+                      {filteredNodes.map((node) => (
                         <tr key={node.id} className="border-b border-border hover:bg-muted/30 transition-colors">
                           <td className="px-4 py-3 text-foreground">
                             {editingNode === node.id ? (
@@ -608,8 +684,8 @@ export default function Admin() {
                           </td>
                         </tr>
                       ))}
-                      {fiberNodes.length === 0 && (
-                        <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No nodes. Use the Plan Routes tab to place markers on the map.</td></tr>
+                      {filteredNodes.length === 0 && (
+                        <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">{fiberNodes.length === 0 ? "No nodes. Use the Plan Routes tab to place markers on the map." : "No nodes match your filters."}</td></tr>
                       )}
                     </tbody>
                   </table>
