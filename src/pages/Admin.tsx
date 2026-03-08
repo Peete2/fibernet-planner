@@ -684,8 +684,8 @@ export default function Admin() {
                           </td>
                         </tr>
                       ))}
-                      {fiberNodes.length === 0 && (
-                        <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No nodes. Use the Plan Routes tab to place markers on the map.</td></tr>
+                      {filteredNodes.length === 0 && (
+                        <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">{fiberNodes.length === 0 ? "No nodes. Use the Plan Routes tab to place markers on the map." : "No nodes match your filters."}</td></tr>
                       )}
                     </tbody>
                   </table>
