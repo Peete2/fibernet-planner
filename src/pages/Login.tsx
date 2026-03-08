@@ -18,9 +18,28 @@ const accountTypes = [
 export default function Login() {
   const navigate = useNavigate();
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isForgot, setIsForgot] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ email: "", password: "", fullName: "", accountType: "individual" });
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.email.trim()) { toast.error("Enter your email address"); return; }
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(form.email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      toast.success("Password reset link sent! Check your email.");
+      setIsForgot(false);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to send reset email");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,114 +85,149 @@ export default function Login() {
             <Wifi className="w-7 h-7 text-primary" />
           </div>
           <h1 className="text-2xl font-display font-bold text-primary-foreground">
-            {isSignUp ? "Create Account" : "Welcome Back"}
+            {isForgot ? "Reset Password" : isSignUp ? "Create Account" : "Welcome Back"}
           </h1>
           <p className="text-primary-foreground/60 text-sm mt-1">
-            ETL Fiber Portal
+            {isForgot ? "Enter your email to receive a reset link" : "ETL Fiber Portal"}
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-card border border-border rounded-xl p-6 shadow-telecom space-y-4">
-          {isSignUp && (
-            <>
-              <div>
-                <Label className="text-foreground mb-3 block">Account Type</Label>
-                <RadioGroup
-                  value={form.accountType}
-                  onValueChange={(val) => setForm({ ...form, accountType: val })}
-                  className="grid grid-cols-3 gap-2"
-                >
-                  {accountTypes.map(({ value, label, icon: Icon }) => (
-                    <Label
-                      key={value}
-                      htmlFor={`type-${value}`}
-                      className={`flex flex-col items-center gap-1.5 rounded-lg border-2 p-3 cursor-pointer transition-colors ${
-                        form.accountType === value
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-border text-muted-foreground hover:border-muted-foreground/40"
-                      }`}
-                    >
-                      <RadioGroupItem value={value} id={`type-${value}`} className="sr-only" />
-                      <Icon className="w-5 h-5" />
-                      <span className="text-xs font-medium">{label}</span>
-                    </Label>
-                  ))}
-                </RadioGroup>
+        {isForgot ? (
+          <form onSubmit={handleForgotPassword} className="bg-card border border-border rounded-xl p-6 shadow-telecom space-y-4">
+            <div>
+              <Label htmlFor="reset-email" className="text-foreground">Email</Label>
+              <div className="relative mt-1">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  id="reset-email"
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  placeholder="you@example.com"
+                  className="pl-10"
+                  required
+                />
               </div>
-
-              <div>
-                <Label htmlFor="fullName" className="text-foreground">
-                  {form.accountType === "individual" ? "Full Name" : form.accountType === "school" ? "School Name" : "Business Name"}
-                </Label>
-                <div className="relative mt-1">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    id="fullName"
-                    value={form.fullName}
-                    onChange={(e) => setForm({ ...form, fullName: e.target.value })}
-                    placeholder={form.accountType === "individual" ? "Thabo Mokhesi" : form.accountType === "school" ? "Maseru High School" : "ETL Solutions Ltd"}
-                    className="pl-10"
-                    required
-                  />
-                </div>
-              </div>
-            </>
-          )}
-
-          <div>
-            <Label htmlFor="email" className="text-foreground">Email</Label>
-            <div className="relative mt-1">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                id="email"
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                placeholder="you@example.com"
-                className="pl-10"
-                required
-              />
             </div>
-          </div>
-
-          <div>
-            <Label htmlFor="password" className="text-foreground">Password</Label>
-            <div className="relative mt-1">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-                placeholder="••••••••"
-                className="pl-10 pr-10"
-                required
-                minLength={6}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            <Button type="submit" size="lg" className="w-full" disabled={loading}>
+              {loading ? "Sending..." : "Send Reset Link"}
+            </Button>
+            <div className="text-center">
+              <button type="button" onClick={() => setIsForgot(false)} className="text-sm text-primary hover:underline">
+                ← Back to sign in
               </button>
             </div>
-          </div>
+          </form>
+        ) : (
+          <form onSubmit={handleSubmit} className="bg-card border border-border rounded-xl p-6 shadow-telecom space-y-4">
+            {isSignUp && (
+              <>
+                <div>
+                  <Label className="text-foreground mb-3 block">Account Type</Label>
+                  <RadioGroup
+                    value={form.accountType}
+                    onValueChange={(val) => setForm({ ...form, accountType: val })}
+                    className="grid grid-cols-3 gap-2"
+                  >
+                    {accountTypes.map(({ value, label, icon: Icon }) => (
+                      <Label
+                        key={value}
+                        htmlFor={`type-${value}`}
+                        className={`flex flex-col items-center gap-1.5 rounded-lg border-2 p-3 cursor-pointer transition-colors ${
+                          form.accountType === value
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border text-muted-foreground hover:border-muted-foreground/40"
+                        }`}
+                      >
+                        <RadioGroupItem value={value} id={`type-${value}`} className="sr-only" />
+                        <Icon className="w-5 h-5" />
+                        <span className="text-xs font-medium">{label}</span>
+                      </Label>
+                    ))}
+                  </RadioGroup>
+                </div>
 
-          <Button type="submit" size="lg" className="w-full" disabled={loading}>
-            {loading ? "Loading..." : isSignUp ? "Create Account" : "Sign In"}
-          </Button>
+                <div>
+                  <Label htmlFor="fullName" className="text-foreground">
+                    {form.accountType === "individual" ? "Full Name" : form.accountType === "school" ? "School Name" : "Business Name"}
+                  </Label>
+                  <div className="relative mt-1">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      id="fullName"
+                      value={form.fullName}
+                      onChange={(e) => setForm({ ...form, fullName: e.target.value })}
+                      placeholder={form.accountType === "individual" ? "Thabo Mokhesi" : form.accountType === "school" ? "Maseru High School" : "ETL Solutions Ltd"}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
+                </div>
+              </>
+            )}
 
-          <div className="text-center">
-            <button
-              type="button"
-              onClick={() => setIsSignUp(!isSignUp)}
-              className="text-sm text-primary hover:underline"
-            >
-              {isSignUp ? "Already have an account? Sign in" : "Don't have an account? Sign up"}
-            </button>
-          </div>
-        </form>
+            <div>
+              <Label htmlFor="email" className="text-foreground">Email</Label>
+              <div className="relative mt-1">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  id="email"
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  placeholder="you@example.com"
+                  className="pl-10"
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password" className="text-foreground">Password</Label>
+                {!isSignUp && (
+                  <button type="button" onClick={() => setIsForgot(true)} className="text-xs text-primary hover:underline">
+                    Forgot password?
+                  </button>
+                )}
+              </div>
+              <div className="relative mt-1">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  placeholder="••••••••"
+                  className="pl-10 pr-10"
+                  required
+                  minLength={6}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            <Button type="submit" size="lg" className="w-full" disabled={loading}>
+              {loading ? "Loading..." : isSignUp ? "Create Account" : "Sign In"}
+            </Button>
+
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={() => setIsSignUp(!isSignUp)}
+                className="text-sm text-primary hover:underline"
+              >
+                {isSignUp ? "Already have an account? Sign in" : "Don't have an account? Sign up"}
+              </button>
+            </div>
+          </form>
+        )}
 
         <p className="text-center mt-4">
           <Link to="/" className="text-primary-foreground/50 text-xs hover:text-primary-foreground/80">
