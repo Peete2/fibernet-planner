@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from "recharts";
 import { DISTRICTS } from "@/lib/mock-data";
-import { Users, FileText, CheckCircle, Wifi, Pencil, Trash2, X, Save, BarChart3, Route, Flame, CalendarDays, UserCheck, Plus, Search } from "lucide-react";
+import { Users, FileText, CheckCircle, Wifi, Pencil, Trash2, X, Save, BarChart3, Route, Flame, CalendarDays, UserCheck, Plus, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -75,6 +75,11 @@ export default function Admin() {
   const [nodeSearch, setNodeSearch] = useState("");
   const [nodeStatusFilter, setNodeStatusFilter] = useState("all");
 
+  // Pagination state
+  const ITEMS_PER_PAGE = 10;
+  const [appPage, setAppPage] = useState(1);
+  const [nodePage, setNodePage] = useState(1);
+
   // Assignment state for the Assign tab
   const [assignTech, setAssignTech] = useState<Record<string, string>>({});
   const [assignDate, setAssignDate] = useState<Record<string, string>>({});
@@ -119,6 +124,7 @@ export default function Admin() {
 
   // Filtered applications
   const filteredApps = useMemo(() => {
+    setAppPage(1);
     return applications.filter((app) => {
       const matchesSearch = !appSearch || 
         app.customer_name.toLowerCase().includes(appSearch.toLowerCase()) ||
@@ -133,12 +139,19 @@ export default function Admin() {
 
   // Filtered nodes
   const filteredNodes = useMemo(() => {
+    setNodePage(1);
     return fiberNodes.filter((node) => {
       const matchesSearch = !nodeSearch || node.name.toLowerCase().includes(nodeSearch.toLowerCase());
       const matchesStatus = nodeStatusFilter === "all" || node.status === nodeStatusFilter;
       return matchesSearch && matchesStatus;
     });
   }, [fiberNodes, nodeSearch, nodeStatusFilter]);
+
+  // Paginated data
+  const appTotalPages = Math.max(1, Math.ceil(filteredApps.length / ITEMS_PER_PAGE));
+  const paginatedApps = filteredApps.slice((appPage - 1) * ITEMS_PER_PAGE, appPage * ITEMS_PER_PAGE);
+  const nodeTotalPages = Math.max(1, Math.ceil(filteredNodes.length / ITEMS_PER_PAGE));
+  const paginatedNodes = filteredNodes.slice((nodePage - 1) * ITEMS_PER_PAGE, nodePage * ITEMS_PER_PAGE);
 
   // Application CRUD
   const startEdit = (app: Application) => {
@@ -356,7 +369,7 @@ export default function Admin() {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredApps.map((app) => (
+                      {paginatedApps.map((app) => (
                         <tr key={app.id} className="border-b border-border hover:bg-muted/30 transition-colors">
                           <td className="px-4 py-3 font-mono text-xs text-foreground">{app.ref_code}</td>
                           <td className="px-4 py-3 text-foreground">{app.customer_name}</td>
@@ -423,10 +436,39 @@ export default function Admin() {
                     </tbody>
                   </table>
                 </div>
+                {filteredApps.length > ITEMS_PER_PAGE && (
+                  <div className="flex items-center justify-between px-5 py-3 border-t border-border">
+                    <span className="text-sm text-muted-foreground">
+                      Showing {(appPage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(appPage * ITEMS_PER_PAGE, filteredApps.length)} of {filteredApps.length}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <Button variant="outline" size="icon" className="h-8 w-8" disabled={appPage <= 1} onClick={() => setAppPage((p) => p - 1)}>
+                        <ChevronLeft className="w-4 h-4" />
+                      </Button>
+                      {Array.from({ length: appTotalPages }, (_, i) => i + 1)
+                        .filter((p) => p === 1 || p === appTotalPages || Math.abs(p - appPage) <= 1)
+                        .reduce<(number | string)[]>((acc, p, idx, arr) => {
+                          if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push("...");
+                          acc.push(p);
+                          return acc;
+                        }, [])
+                        .map((p, i) =>
+                          typeof p === "string" ? (
+                            <span key={`e${i}`} className="px-1 text-muted-foreground text-sm">…</span>
+                          ) : (
+                            <Button key={p} variant={p === appPage ? "default" : "outline"} size="icon" className="h-8 w-8 text-xs" onClick={() => setAppPage(p)}>
+                              {p}
+                            </Button>
+                          )
+                        )}
+                      <Button variant="outline" size="icon" className="h-8 w-8" disabled={appPage >= appTotalPages} onClick={() => setAppPage((p) => p + 1)}>
+                        <ChevronRight className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             </TabsContent>
-
-            {/* ========== ASSIGN TECHNICIANS ========== */}
             <TabsContent value="assign">
               <div className="bg-card border border-border rounded-xl shadow-telecom overflow-hidden">
                 <div className="p-5 border-b border-border">
@@ -635,7 +677,7 @@ export default function Admin() {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredNodes.map((node) => (
+                      {paginatedNodes.map((node) => (
                         <tr key={node.id} className="border-b border-border hover:bg-muted/30 transition-colors">
                           <td className="px-4 py-3 text-foreground">
                             {editingNode === node.id ? (
@@ -690,6 +732,37 @@ export default function Admin() {
                     </tbody>
                   </table>
                 </div>
+                {filteredNodes.length > ITEMS_PER_PAGE && (
+                  <div className="flex items-center justify-between px-5 py-3 border-t border-border">
+                    <span className="text-sm text-muted-foreground">
+                      Showing {(nodePage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(nodePage * ITEMS_PER_PAGE, filteredNodes.length)} of {filteredNodes.length}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <Button variant="outline" size="icon" className="h-8 w-8" disabled={nodePage <= 1} onClick={() => setNodePage((p) => p - 1)}>
+                        <ChevronLeft className="w-4 h-4" />
+                      </Button>
+                      {Array.from({ length: nodeTotalPages }, (_, i) => i + 1)
+                        .filter((p) => p === 1 || p === nodeTotalPages || Math.abs(p - nodePage) <= 1)
+                        .reduce<(number | string)[]>((acc, p, idx, arr) => {
+                          if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push("...");
+                          acc.push(p);
+                          return acc;
+                        }, [])
+                        .map((p, i) =>
+                          typeof p === "string" ? (
+                            <span key={`e${i}`} className="px-1 text-muted-foreground text-sm">…</span>
+                          ) : (
+                            <Button key={p} variant={p === nodePage ? "default" : "outline"} size="icon" className="h-8 w-8 text-xs" onClick={() => setNodePage(p)}>
+                              {p}
+                            </Button>
+                          )
+                        )}
+                      <Button variant="outline" size="icon" className="h-8 w-8" disabled={nodePage >= nodeTotalPages} onClick={() => setNodePage((p) => p + 1)}>
+                        <ChevronRight className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             </TabsContent>
 
