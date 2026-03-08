@@ -53,6 +53,7 @@ export default function Coverage() {
           </div>
         </motion.div>
       </div>
+      <Footer />
     </div>
   );
 }
