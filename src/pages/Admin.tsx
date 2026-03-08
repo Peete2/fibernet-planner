@@ -75,6 +75,11 @@ export default function Admin() {
   const [nodeSearch, setNodeSearch] = useState("");
   const [nodeStatusFilter, setNodeStatusFilter] = useState("all");
 
+  // Pagination state
+  const ITEMS_PER_PAGE = 10;
+  const [appPage, setAppPage] = useState(1);
+  const [nodePage, setNodePage] = useState(1);
+
   // Assignment state for the Assign tab
   const [assignTech, setAssignTech] = useState<Record<string, string>>({});
   const [assignDate, setAssignDate] = useState<Record<string, string>>({});
