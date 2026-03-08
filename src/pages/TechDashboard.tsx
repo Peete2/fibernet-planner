@@ -71,8 +71,8 @@ export default function TechDashboard() {
   const completed = jobs.filter((j) => j.status === "Completed");
 
   return (
-    <div className="pt-20 min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="pt-20 min-h-screen bg-background flex flex-col">
+      <div className="container mx-auto px-4 py-8 max-w-4xl flex-1">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <div className="flex items-center gap-3 mb-6">
             <Wrench className="w-7 h-7 text-primary" />
