@@ -1,8 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-import { mockApplications, DISTRICTS, mockFiberNodes } from "@/lib/mock-data";
-import { Users, FileText, CheckCircle, Wifi } from "lucide-react";
+import { DISTRICTS } from "@/lib/mock-data";
+import { Users, FileText, CheckCircle, Wifi, Pencil, Trash2, X, Save } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const statusColors: Record<string, string> = {
   Submitted: "hsl(45 90% 50%)",
@@ -12,26 +17,103 @@ const statusColors: Record<string, string> = {
   Completed: "hsl(140 70% 40%)",
 };
 
-export default function Admin() {
-  const [selectedApp, setSelectedApp] = useState<string | null>(null);
+const allStatuses = ["Submitted", "Site Survey", "Approved", "Installation Scheduled", "Completed"];
 
-  // District stats
+interface Application {
+  id: string;
+  ref_code: string;
+  customer_name: string;
+  service: string;
+  district: string;
+  location: string | null;
+  status: string;
+  technician: string | null;
+  created_at: string;
+}
+
+interface FiberNode {
+  id: string;
+  name: string;
+  latitude: number;
+  longitude: number;
+  capacity: number;
+  status: string;
+}
+
+export default function Admin() {
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [fiberNodes, setFiberNodes] = useState<FiberNode[]>([]);
+  const [editingApp, setEditingApp] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<{ status: string; technician: string }>({ status: "", technician: "" });
+  const [loading, setLoading] = useState(true);
+
+  const fetchData = async () => {
+    setLoading(true);
+    const [appsRes, nodesRes] = await Promise.all([
+      supabase.from("applications").select("id, ref_code, customer_name, service, district, location, status, technician, created_at").order("created_at", { ascending: false }),
+      supabase.from("fiber_nodes").select("id, name, latitude, longitude, capacity, status"),
+    ]);
+    if (appsRes.data) setApplications(appsRes.data);
+    if (nodesRes.data) setFiberNodes(nodesRes.data);
+    setLoading(false);
+  };
+
+  useEffect(() => { fetchData(); }, []);
+
+  const startEdit = (app: Application) => {
+    setEditingApp(app.id);
+    setEditForm({ status: app.status, technician: app.technician || "" });
+  };
+
+  const saveEdit = async (id: string) => {
+    const { error } = await supabase
+      .from("applications")
+      .update({ status: editForm.status, technician: editForm.technician || null })
+      .eq("id", id);
+
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("Application updated");
+      setEditingApp(null);
+      fetchData();
+    }
+  };
+
+  const deleteApp = async (id: string) => {
+    const { error } = await supabase.from("applications").delete().eq("id", id);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("Application deleted");
+      fetchData();
+    }
+  };
+
+  // Stats
   const districtData = DISTRICTS.map((d) => ({
     name: d.length > 8 ? d.slice(0, 8) + "." : d,
-    count: mockApplications.filter((a) => a.district === d).length,
+    count: applications.filter((a) => a.district === d).length,
   })).filter((d) => d.count > 0);
 
-  // Status breakdown
   const statusData = Object.entries(
-    mockApplications.reduce((acc, a) => { acc[a.status] = (acc[a.status] || 0) + 1; return acc; }, {} as Record<string, number>)
+    applications.reduce((acc, a) => { acc[a.status] = (acc[a.status] || 0) + 1; return acc; }, {} as Record<string, number>)
   ).map(([name, value]) => ({ name, value }));
 
   const stats = [
-    { label: "Total Applications", value: mockApplications.length, icon: FileText, color: "text-secondary" },
-    { label: "Completed", value: mockApplications.filter((a) => a.status === "Completed").length, icon: CheckCircle, color: "text-status-completed" },
-    { label: "Active Nodes", value: mockFiberNodes.filter((n) => n.status === "Active").length, icon: Wifi, color: "text-secondary" },
-    { label: "Pending", value: mockApplications.filter((a) => a.status !== "Completed").length, icon: Users, color: "text-accent" },
+    { label: "Total Applications", value: applications.length, icon: FileText, color: "text-secondary" },
+    { label: "Completed", value: applications.filter((a) => a.status === "Completed").length, icon: CheckCircle, color: "text-status-completed" },
+    { label: "Active Nodes", value: fiberNodes.filter((n) => n.status === "Active").length, icon: Wifi, color: "text-secondary" },
+    { label: "Pending", value: applications.filter((a) => a.status !== "Completed").length, icon: Users, color: "text-accent" },
   ];
+
+  if (loading) {
+    return (
+      <div className="pt-20 min-h-screen flex items-center justify-center bg-background">
+        <div className="text-muted-foreground">Loading dashboard...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="pt-20 min-h-screen bg-background">
@@ -91,36 +173,85 @@ export default function Admin() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border bg-muted/50">
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">ID</th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Ref</th>
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">Customer</th>
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">Service</th>
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">District</th>
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Technician</th>
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">Date</th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {mockApplications.map((app) => (
-                    <tr
-                      key={app.id}
-                      className={`border-b border-border hover:bg-muted/30 cursor-pointer transition-colors ${selectedApp === app.id ? "bg-secondary/5" : ""}`}
-                      onClick={() => setSelectedApp(selectedApp === app.id ? null : app.id)}
-                    >
-                      <td className="px-4 py-3 font-mono text-xs text-foreground">{app.id}</td>
-                      <td className="px-4 py-3 text-foreground">{app.customerName}</td>
+                  {applications.map((app) => (
+                    <tr key={app.id} className="border-b border-border hover:bg-muted/30 transition-colors">
+                      <td className="px-4 py-3 font-mono text-xs text-foreground">{app.ref_code}</td>
+                      <td className="px-4 py-3 text-foreground">{app.customer_name}</td>
                       <td className="px-4 py-3 text-muted-foreground">{app.service}</td>
                       <td className="px-4 py-3 text-muted-foreground">{app.district}</td>
                       <td className="px-4 py-3">
-                        <span
-                          className="px-2 py-0.5 rounded-full text-xs font-medium"
-                          style={{ backgroundColor: statusColors[app.status], color: "white" }}
-                        >
-                          {app.status}
-                        </span>
+                        {editingApp === app.id ? (
+                          <Select value={editForm.status} onValueChange={(v) => setEditForm({ ...editForm, status: v })}>
+                            <SelectTrigger className="h-8 text-xs w-40">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {allStatuses.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <span
+                            className="px-2 py-0.5 rounded-full text-xs font-medium"
+                            style={{ backgroundColor: statusColors[app.status] || "#888", color: "white" }}
+                          >
+                            {app.status}
+                          </span>
+                        )}
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground">{app.dateCreated}</td>
+                      <td className="px-4 py-3">
+                        {editingApp === app.id ? (
+                          <Input
+                            value={editForm.technician}
+                            onChange={(e) => setEditForm({ ...editForm, technician: e.target.value })}
+                            placeholder="Assign technician"
+                            className="h-8 text-xs w-36"
+                          />
+                        ) : (
+                          <span className="text-muted-foreground">{app.technician || "—"}</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">{new Date(app.created_at).toLocaleDateString()}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex gap-1">
+                          {editingApp === app.id ? (
+                            <>
+                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => saveEdit(app.id)}>
+                                <Save className="w-3.5 h-3.5 text-secondary" />
+                              </Button>
+                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingApp(null)}>
+                                <X className="w-3.5 h-3.5" />
+                              </Button>
+                            </>
+                          ) : (
+                            <>
+                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => startEdit(app)}>
+                                <Pencil className="w-3.5 h-3.5" />
+                              </Button>
+                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteApp(app.id)}>
+                                <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </td>
                     </tr>
                   ))}
+                  {applications.length === 0 && (
+                    <tr>
+                      <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">No applications yet.</td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>

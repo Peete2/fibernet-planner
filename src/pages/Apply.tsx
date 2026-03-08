@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { MapPin, Loader2, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,14 +7,28 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DISTRICTS } from "@/lib/mock-data";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
 const services = ["Fiber 50Mbps", "Fiber 100Mbps", "Fiber 200Mbps", "Wireless 20Mbps"];
 
 export default function Apply() {
-  const [form, setForm] = useState({ name: "", email: "", phone: "", service: "", district: "", location: "", latitude: "", longitude: "" });
+  const { user, profile } = useAuth();
+  const navigate = useNavigate();
+  const [form, setForm] = useState({
+    name: profile?.full_name || "",
+    email: profile?.email || user?.email || "",
+    phone: profile?.phone || "",
+    service: "",
+    district: profile?.district || "",
+    location: "",
+    latitude: "",
+    longitude: "",
+  });
   const [detecting, setDetecting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submittedRef, setSubmittedRef] = useState<string | null>(null);
 
   const detectGPS = () => {
     if (!navigator.geolocation) {
@@ -23,7 +38,11 @@ export default function Apply() {
     setDetecting(true);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setForm((f) => ({ ...f, latitude: pos.coords.latitude.toFixed(6), longitude: pos.coords.longitude.toFixed(6) }));
+        setForm((f) => ({
+          ...f,
+          latitude: pos.coords.latitude.toFixed(6),
+          longitude: pos.coords.longitude.toFixed(6),
+        }));
         setDetecting(false);
         toast.success("Location detected!");
       },
@@ -34,25 +53,59 @@ export default function Apply() {
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name || !form.service || !form.district) {
       toast.error("Please fill required fields");
       return;
     }
-    setSubmitted(true);
-    toast.success("Application submitted successfully!");
+
+    setSubmitting(true);
+    try {
+      const { data, error } = await supabase
+        .from("applications")
+        .insert({
+          customer_name: form.name.trim(),
+          email: form.email.trim() || null,
+          phone: form.phone.trim() || null,
+          service: form.service,
+          district: form.district,
+          location: form.location.trim() || null,
+          latitude: form.latitude ? parseFloat(form.latitude) : null,
+          longitude: form.longitude ? parseFloat(form.longitude) : null,
+          user_id: user?.id || null,
+        })
+        .select("ref_code")
+        .single();
+
+      if (error) throw error;
+      setSubmittedRef(data.ref_code);
+      toast.success("Application submitted!");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to submit application");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  if (submitted) {
+  if (submittedRef) {
     return (
       <div className="pt-20 min-h-screen bg-background flex items-center justify-center">
         <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center p-8">
           <CheckCircle className="w-16 h-16 text-secondary mx-auto mb-4" />
           <h2 className="text-2xl font-display font-bold text-foreground mb-2">Application Submitted!</h2>
-          <p className="text-muted-foreground mb-2">Your reference: <strong className="text-foreground">ETL-2026-{String(Math.floor(Math.random() * 900) + 100)}</strong></p>
+          <p className="text-muted-foreground mb-2">
+            Your reference: <strong className="text-foreground">{submittedRef}</strong>
+          </p>
           <p className="text-muted-foreground text-sm">Track your application status on the Track page.</p>
-          <Button variant="hero" className="mt-6" onClick={() => setSubmitted(false)}>Submit Another</Button>
+          <div className="flex gap-3 justify-center mt-6">
+            <Button variant="hero" onClick={() => { setSubmittedRef(null); setForm({ name: "", email: "", phone: "", service: "", district: "", location: "", latitude: "", longitude: "" }); }}>
+              Submit Another
+            </Button>
+            <Button variant="outline" onClick={() => navigate("/track")}>
+              Track Application
+            </Button>
+          </div>
         </motion.div>
       </div>
     );
@@ -125,7 +178,9 @@ export default function Apply() {
               <p className="text-xs text-muted-foreground mt-1">Click the pin icon to auto-detect your location</p>
             </div>
 
-            <Button type="submit" variant="hero" size="lg" className="w-full">Submit Application</Button>
+            <Button type="submit" variant="hero" size="lg" className="w-full" disabled={submitting}>
+              {submitting ? "Submitting..." : "Submit Application"}
+            </Button>
           </form>
         </motion.div>
       </div>
