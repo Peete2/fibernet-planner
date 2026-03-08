@@ -562,7 +562,7 @@ export default function Admin() {
                       <XAxis dataKey="name" tick={{ fontSize: 11, fill: "hsl(220 10% 45%)" }} />
                       <YAxis tick={{ fontSize: 11, fill: "hsl(220 10% 45%)" }} />
                       <Tooltip formatter={(value, _name, props) => [value, (props.payload as any).full || "District"]} />
-                      <Bar dataKey="count" fill="hsl(180 70% 40%)" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
