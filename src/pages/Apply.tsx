@@ -170,7 +170,7 @@ export default function Apply() {
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="phone">Phone</Label>
-                <Input id="phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+266 5800 0000" />
+                <Input id="phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+266 6100 0000" />
               </div>
               <div>
                 <Label>Service *</Label>
