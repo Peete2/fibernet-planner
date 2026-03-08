@@ -46,7 +46,7 @@ export default function Index() {
                   Apply Now <ArrowRight className="w-4 h-4 ml-1" />
                 </Link>
               </Button>
-              <Button variant="outline" size="lg" className="border-primary-foreground/40 text-primary-foreground hover:bg-primary-foreground/10" asChild>
+              <Button variant="outline" size="lg" className="border-primary-foreground/40 text-primary-foreground bg-transparent hover:bg-primary-foreground/10" asChild>
                 <Link to="/coverage">Check Coverage</Link>
               </Button>
             </div>
