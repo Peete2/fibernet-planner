@@ -23,6 +23,7 @@ interface AppResult {
   district: string;
   status: string;
   technician: string | null;
+  scheduled_date: string | null;
   created_at: string;
 }
 
@@ -42,7 +43,7 @@ export default function Track() {
 
     const { data, error } = await supabase
       .from("applications")
-      .select("ref_code, customer_name, service, location, district, status, technician, created_at")
+      .select("ref_code, customer_name, service, location, district, status, technician, scheduled_date, created_at")
       .eq("ref_code", query.trim().toUpperCase())
       .maybeSingle();
 
@@ -126,6 +127,9 @@ export default function Track() {
                 <div><span className="text-muted-foreground">Applied:</span> <span className="text-foreground font-medium">{new Date(result.created_at).toLocaleDateString()}</span></div>
                 {result.technician && (
                   <div><span className="text-muted-foreground">Technician:</span> <span className="text-foreground font-medium">{result.technician}</span></div>
+                )}
+                {result.scheduled_date && (
+                  <div><span className="text-muted-foreground">Scheduled:</span> <span className="text-foreground font-medium">{new Date(result.scheduled_date).toLocaleDateString()}</span></div>
                 )}
               </div>
             </motion.div>
