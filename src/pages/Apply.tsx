@@ -127,10 +127,37 @@ export default function Apply() {
           <p className="text-muted-foreground mb-8">Fill in your details and we'll get you connected.</p>
 
           <form onSubmit={handleSubmit} className="space-y-5 bg-card border border-border rounded-xl p-6 shadow-telecom">
+            <div>
+              <Label className="text-foreground mb-3 block">Account Type *</Label>
+              <RadioGroup
+                value={form.accountType}
+                onValueChange={(val) => setForm({ ...form, accountType: val })}
+                className="grid grid-cols-3 gap-2"
+              >
+                {accountTypes.map(({ value, label, icon: Icon }) => (
+                  <Label
+                    key={value}
+                    htmlFor={`apply-type-${value}`}
+                    className={`flex flex-col items-center gap-1.5 rounded-lg border-2 p-3 cursor-pointer transition-colors ${
+                      form.accountType === value
+                        ? "border-secondary bg-secondary/10 text-secondary"
+                        : "border-border text-muted-foreground hover:border-muted-foreground/40"
+                    }`}
+                  >
+                    <RadioGroupItem value={value} id={`apply-type-${value}`} className="sr-only" />
+                    <Icon className="w-5 h-5" />
+                    <span className="text-xs font-medium">{label}</span>
+                  </Label>
+                ))}
+              </RadioGroup>
+            </div>
+
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="name">Full Name *</Label>
-                <Input id="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Thabo Mokhesi" />
+                <Label htmlFor="name">
+                  {form.accountType === "individual" ? "Full Name" : form.accountType === "school" ? "School Name" : "Business Name"} *
+                </Label>
+                <Input id="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder={form.accountType === "individual" ? "Thabo Mokhesi" : form.accountType === "school" ? "Maseru High School" : "ETL Solutions Ltd"} />
               </div>
               <div>
                 <Label htmlFor="email">Email</Label>
