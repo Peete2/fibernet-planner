@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       applications: {
         Row: {
+          account_type: string
           created_at: string
           customer_name: string
           district: string
@@ -34,6 +35,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          account_type?: string
           created_at?: string
           customer_name: string
           district: string
@@ -52,6 +54,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          account_type?: string
           created_at?: string
           customer_name?: string
           district?: string
@@ -125,8 +128,36 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          read: boolean
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          read?: boolean
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          read?: boolean
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
+          account_type: string
           created_at: string
           district: string | null
           email: string | null
@@ -137,6 +168,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          account_type?: string
           created_at?: string
           district?: string | null
           email?: string | null
@@ -147,6 +179,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          account_type?: string
           created_at?: string
           district?: string | null
           email?: string | null
