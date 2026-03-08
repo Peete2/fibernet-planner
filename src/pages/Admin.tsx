@@ -142,13 +142,16 @@ export default function Admin() {
 
   // Filtered nodes
   const filteredNodes = useMemo(() => {
-    setNodePage(1);
     return fiberNodes.filter((node) => {
       const matchesSearch = !nodeSearch || node.name.toLowerCase().includes(nodeSearch.toLowerCase());
       const matchesStatus = nodeStatusFilter === "all" || node.status === nodeStatusFilter;
       return matchesSearch && matchesStatus;
     });
   }, [fiberNodes, nodeSearch, nodeStatusFilter]);
+
+  // Reset pages when filters change
+  useEffect(() => { setAppPage(1); }, [appSearch, appStatusFilter, appDistrictFilter]);
+  useEffect(() => { setNodePage(1); }, [nodeSearch, nodeStatusFilter]);
 
   // Paginated data
   const appTotalPages = Math.max(1, Math.ceil(filteredApps.length / ITEMS_PER_PAGE));
