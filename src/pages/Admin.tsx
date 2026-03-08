@@ -14,6 +14,8 @@ import AdminDrawMap from "@/components/AdminDrawMap";
 import CreateApplicationDialog from "@/components/CreateApplicationDialog";
 import SystemLogsPanel from "@/components/SystemLogsPanel";
 import AdminUserManagement from "@/components/AdminUserManagement";
+import ConfirmDialog from "@/components/ConfirmDialog";
+import Footer from "@/components/Footer";
 
 const statusColors: Record<string, string> = {
   Submitted: "hsl(45 90% 50%)",
@@ -126,7 +128,6 @@ export default function Admin() {
 
   // Filtered applications
   const filteredApps = useMemo(() => {
-    setAppPage(1);
     return applications.filter((app) => {
       const matchesSearch = !appSearch || 
         app.customer_name.toLowerCase().includes(appSearch.toLowerCase()) ||
@@ -141,13 +142,16 @@ export default function Admin() {
 
   // Filtered nodes
   const filteredNodes = useMemo(() => {
-    setNodePage(1);
     return fiberNodes.filter((node) => {
       const matchesSearch = !nodeSearch || node.name.toLowerCase().includes(nodeSearch.toLowerCase());
       const matchesStatus = nodeStatusFilter === "all" || node.status === nodeStatusFilter;
       return matchesSearch && matchesStatus;
     });
   }, [fiberNodes, nodeSearch, nodeStatusFilter]);
+
+  // Reset pages when filters change
+  useEffect(() => { setAppPage(1); }, [appSearch, appStatusFilter, appDistrictFilter]);
+  useEffect(() => { setNodePage(1); }, [nodeSearch, nodeStatusFilter]);
 
   // Paginated data
   const appTotalPages = Math.max(1, Math.ceil(filteredApps.length / ITEMS_PER_PAGE));
@@ -308,7 +312,7 @@ export default function Admin() {
                       <XAxis dataKey="name" tick={{ fontSize: 11, fill: "hsl(220 10% 45%)" }} />
                       <YAxis tick={{ fontSize: 11, fill: "hsl(220 10% 45%)" }} />
                       <Tooltip />
-                      <Bar dataKey="count" fill="hsl(180 70% 40%)" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -427,7 +431,7 @@ export default function Admin() {
                               ) : (
                                 <>
                                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => startEdit(app)}><Pencil className="w-3.5 h-3.5" /></Button>
-                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteApp(app.id)}><Trash2 className="w-3.5 h-3.5 text-destructive" /></Button>
+                                  <ConfirmDialog onConfirm={() => deleteApp(app.id)} title="Delete application?" description={`This will permanently delete application ${app.ref_code}.`} />
                                 </>
                               )}
                             </div>
@@ -558,7 +562,7 @@ export default function Admin() {
                       <XAxis dataKey="name" tick={{ fontSize: 11, fill: "hsl(220 10% 45%)" }} />
                       <YAxis tick={{ fontSize: 11, fill: "hsl(220 10% 45%)" }} />
                       <Tooltip formatter={(value, _name, props) => [value, (props.payload as any).full || "District"]} />
-                      <Bar dataKey="count" fill="hsl(180 70% 40%)" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -599,7 +603,7 @@ export default function Admin() {
                       <XAxis dataKey="month" tick={{ fontSize: 11, fill: "hsl(220 10% 45%)" }} />
                       <YAxis tick={{ fontSize: 11, fill: "hsl(220 10% 45%)" }} />
                       <Tooltip />
-                      <Line type="monotone" dataKey="count" stroke="hsl(180 70% 40%)" strokeWidth={2} dot={{ r: 4 }} />
+                      <Line type="monotone" dataKey="count" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 4 }} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -636,7 +640,7 @@ export default function Admin() {
                             <td className="px-4 py-3 text-foreground">{r.route_name}</td>
                             <td className="px-4 py-3 text-muted-foreground">{new Date(r.created_at).toLocaleDateString()}</td>
                             <td className="px-4 py-3">
-                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteRoute(r.id)}><Trash2 className="w-3.5 h-3.5 text-destructive" /></Button>
+                              <ConfirmDialog onConfirm={() => deleteRoute(r.id)} title="Delete route?" description={`This will permanently delete route "${r.route_name}".`} />
                             </td>
                           </tr>
                         ))}
@@ -723,7 +727,7 @@ export default function Admin() {
                               ) : (
                                 <>
                                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => startNodeEdit(node)}><Pencil className="w-3.5 h-3.5" /></Button>
-                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteNode(node.id)}><Trash2 className="w-3.5 h-3.5 text-destructive" /></Button>
+                                  <ConfirmDialog onConfirm={() => deleteNode(node.id)} title="Delete node?" description={`This will permanently delete node "${node.name}".`} />
                                 </>
                               )}
                             </div>
@@ -805,6 +809,7 @@ export default function Admin() {
           </Tabs>
         </motion.div>
       </div>
+      <Footer />
     </div>
   );
 }

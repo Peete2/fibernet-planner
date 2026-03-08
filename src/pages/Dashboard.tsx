@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Clock, CheckCircle, Wrench, CalendarDays, FileText, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import Footer from "@/components/Footer";
 
 const statusColors: Record<string, string> = {
   Submitted: "hsl(var(--status-submitted))",
@@ -59,8 +60,8 @@ export default function Dashboard() {
   const pending = apps.filter((a) => a.status !== "Completed").length;
 
   return (
-    <div className="pt-20 min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="pt-20 min-h-screen bg-background flex flex-col">
+      <div className="container mx-auto px-4 py-8 max-w-4xl flex-1">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="text-3xl font-display font-bold text-foreground mb-2">My Applications</h1>
           <p className="text-muted-foreground mb-6">Track all your service applications in one place.</p>
@@ -144,6 +145,7 @@ export default function Dashboard() {
           )}
         </motion.div>
       </div>
+      <Footer />
     </div>
   );
 }

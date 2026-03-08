@@ -2,6 +2,7 @@ import { useState } from "react";
 import LeafletMap from "@/components/LeafletMap";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import Footer from "@/components/Footer";
 
 export default function Coverage() {
   const [showHeatmap, setShowHeatmap] = useState(false);
@@ -52,6 +53,7 @@ export default function Coverage() {
           </div>
         </motion.div>
       </div>
+      <Footer />
     </div>
   );
 }

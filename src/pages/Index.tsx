@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { MapPin, Wifi, BarChart3, Shield, ArrowRight, Zap, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Footer from "@/components/Footer";
 import heroBg from "@/assets/hero-bg.jpg";
 
 const features = [
@@ -101,12 +102,7 @@ export default function Index() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-8 bg-card border-t border-border">
-        <div className="container mx-auto px-4 text-center text-muted-foreground text-sm">
-          © 2026 Econet Telecom Lesotho. All rights reserved. | Fiber Portal v2.0
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

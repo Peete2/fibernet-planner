@@ -4,6 +4,7 @@ import { Search, CheckCircle, Clock, Truck, ClipboardCheck, FileText } from "luc
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
+import Footer from "@/components/Footer";
 
 const statusConfig: Record<string, { icon: typeof Clock; color: string }> = {
   Submitted: { icon: FileText, color: "bg-status-submitted" },
@@ -59,8 +60,8 @@ export default function Track() {
   const currentIndex = result ? allStatuses.indexOf(result.status) : -1;
 
   return (
-    <div className="pt-20 min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
+    <div className="pt-20 min-h-screen bg-background flex flex-col">
+      <div className="container mx-auto px-4 py-8 max-w-2xl flex-1">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-2">
             Track Your Application
@@ -136,6 +137,7 @@ export default function Track() {
           )}
         </motion.div>
       </div>
+      <Footer />
     </div>
   );
 }
