@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from "recharts";
 import { DISTRICTS } from "@/lib/mock-data";
-import { Users, FileText, CheckCircle, Wifi, Pencil, Trash2, X, Save, BarChart3, Route, Flame, CalendarDays, UserCheck, Plus, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Users, FileText, CheckCircle, Wifi, Pencil, Trash2, X, Save, BarChart3, Route, Flame, CalendarDays, UserCheck, Plus, Search, ChevronLeft, ChevronRight, ScrollText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import LeafletMap from "@/components/LeafletMap";
 import AdminDrawMap from "@/components/AdminDrawMap";
 import CreateApplicationDialog from "@/components/CreateApplicationDialog";
+import SystemLogsPanel from "@/components/SystemLogsPanel";
 
 const statusColors: Record<string, string> = {
   Submitted: "hsl(45 90% 50%)",
@@ -281,6 +282,7 @@ export default function Admin() {
               <TabsTrigger value="plan" className="gap-1.5"><Route className="w-4 h-4" />Plan Routes</TabsTrigger>
               <TabsTrigger value="nodes" className="gap-1.5"><Wifi className="w-4 h-4" />Manage Nodes</TabsTrigger>
               <TabsTrigger value="heatmap" className="gap-1.5"><Flame className="w-4 h-4" />Heatmap</TabsTrigger>
+              <TabsTrigger value="logs" className="gap-1.5"><ScrollText className="w-4 h-4" />System Logs</TabsTrigger>
             </TabsList>
 
             {/* ========== OVERVIEW ========== */}
@@ -780,6 +782,17 @@ export default function Admin() {
                   <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-destructive" />Maintenance</div>
                   <div className="flex items-center gap-2"><div className="w-4 h-2 rounded" style={{ background: "linear-gradient(90deg, #22d3ee, #facc15, #f97316, #ef4444)" }} />Demand Intensity</div>
                 </div>
+              </div>
+            </TabsContent>
+
+            {/* ========== SYSTEM LOGS ========== */}
+            <TabsContent value="logs">
+              <div className="bg-card border border-border rounded-xl p-5 shadow-telecom">
+                <h3 className="font-display font-semibold text-foreground mb-2">System Logs</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Monitor backend errors, warnings, and system events. Critical and error logs require attention.
+                </p>
+                <SystemLogsPanel />
               </div>
             </TabsContent>
           </Tabs>
