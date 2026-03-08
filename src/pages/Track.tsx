@@ -23,6 +23,7 @@ interface AppResult {
   district: string;
   status: string;
   technician: string | null;
+  scheduled_date: string | null;
   created_at: string;
 }
 
