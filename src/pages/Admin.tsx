@@ -787,6 +787,11 @@ export default function Admin() {
               </div>
             </TabsContent>
 
+            {/* ========== USER MANAGEMENT ========== */}
+            <TabsContent value="users">
+              <AdminUserManagement />
+            </TabsContent>
+
             {/* ========== SYSTEM LOGS ========== */}
             <TabsContent value="logs">
               <div className="bg-card border border-border rounded-xl p-5 shadow-telecom">
