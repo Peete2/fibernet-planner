@@ -106,6 +106,40 @@ export default function Admin() {
 
   useEffect(() => { fetchData(); }, []);
 
+  // Realtime subscription for applications
+  useEffect(() => {
+    const channel = supabase
+      .channel('admin-applications')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'applications' }, () => {
+        fetchData();
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
+  // Filtered applications
+  const filteredApps = useMemo(() => {
+    return applications.filter((app) => {
+      const matchesSearch = !appSearch || 
+        app.customer_name.toLowerCase().includes(appSearch.toLowerCase()) ||
+        app.ref_code.toLowerCase().includes(appSearch.toLowerCase()) ||
+        (app.location || "").toLowerCase().includes(appSearch.toLowerCase()) ||
+        (app.technician || "").toLowerCase().includes(appSearch.toLowerCase());
+      const matchesStatus = appStatusFilter === "all" || app.status === appStatusFilter;
+      const matchesDistrict = appDistrictFilter === "all" || app.district === appDistrictFilter;
+      return matchesSearch && matchesStatus && matchesDistrict;
+    });
+  }, [applications, appSearch, appStatusFilter, appDistrictFilter]);
+
+  // Filtered nodes
+  const filteredNodes = useMemo(() => {
+    return fiberNodes.filter((node) => {
+      const matchesSearch = !nodeSearch || node.name.toLowerCase().includes(nodeSearch.toLowerCase());
+      const matchesStatus = nodeStatusFilter === "all" || node.status === nodeStatusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [fiberNodes, nodeSearch, nodeStatusFilter]);
+
   // Application CRUD
   const startEdit = (app: Application) => {
     setEditingApp(app.id);
