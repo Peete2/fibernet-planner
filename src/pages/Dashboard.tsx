@@ -145,6 +145,7 @@ export default function Dashboard() {
           )}
         </motion.div>
       </div>
+      <Footer />
     </div>
   );
 }

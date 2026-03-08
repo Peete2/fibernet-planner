@@ -137,6 +137,7 @@ export default function Track() {
           )}
         </motion.div>
       </div>
+      <Footer />
     </div>
   );
 }

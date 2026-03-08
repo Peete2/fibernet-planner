@@ -221,6 +221,7 @@ export default function Apply() {
           </form>
         </motion.div>
       </div>
+      <Footer />
     </div>
   );
 }

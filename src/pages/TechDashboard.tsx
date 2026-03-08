@@ -121,6 +121,7 @@ export default function TechDashboard() {
           )}
         </motion.div>
       </div>
+      <Footer />
     </div>
   );
 }
