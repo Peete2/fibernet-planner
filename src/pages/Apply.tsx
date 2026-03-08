@@ -82,7 +82,8 @@ export default function Apply() {
           latitude: form.latitude ? parseFloat(form.latitude) : null,
           longitude: form.longitude ? parseFloat(form.longitude) : null,
           user_id: user?.id || null,
-        })
+          account_type: form.accountType,
+        } as any)
         .select("ref_code")
         .single();
 

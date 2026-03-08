@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X, Wifi, LogOut, User } from "lucide-react";
+import NotificationBell from "@/components/NotificationBell";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
@@ -61,6 +62,7 @@ export default function Navbar() {
 
           {user ? (
             <div className="flex items-center gap-2 ml-3">
+              <NotificationBell />
               <span className="text-xs text-primary-foreground/60 flex items-center gap-1">
                 <User className="w-3 h-3" />
                 {profile?.full_name || user.email}
