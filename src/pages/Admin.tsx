@@ -784,6 +784,17 @@ export default function Admin() {
                 </div>
               </div>
             </TabsContent>
+
+            {/* ========== SYSTEM LOGS ========== */}
+            <TabsContent value="logs">
+              <div className="bg-card border border-border rounded-xl p-5 shadow-telecom">
+                <h3 className="font-display font-semibold text-foreground mb-2">System Logs</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Monitor backend errors, warnings, and system events. Critical and error logs require attention.
+                </p>
+                <SystemLogsPanel />
+              </div>
+            </TabsContent>
           </Tabs>
         </motion.div>
       </div>
