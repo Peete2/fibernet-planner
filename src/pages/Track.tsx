@@ -43,7 +43,7 @@ export default function Track() {
 
     const { data, error } = await supabase
       .from("applications")
-      .select("ref_code, customer_name, service, location, district, status, technician, created_at")
+      .select("ref_code, customer_name, service, location, district, status, technician, scheduled_date, created_at")
       .eq("ref_code", query.trim().toUpperCase())
       .maybeSingle();
 
