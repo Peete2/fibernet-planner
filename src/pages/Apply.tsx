@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { MapPin, Loader2, CheckCircle } from "lucide-react";
+import { MapPin, Loader2, CheckCircle, UserRound, School, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DISTRICTS } from "@/lib/mock-data";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +13,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
 const services = ["Fiber 50Mbps", "Fiber 100Mbps", "Fiber 200Mbps", "Wireless 20Mbps"];
+
+const accountTypes = [
+  { value: "individual", label: "Individual", icon: UserRound },
+  { value: "school", label: "School", icon: School },
+  { value: "business", label: "Business", icon: Building2 },
+] as const;
 
 export default function Apply() {
   const { user, profile } = useAuth();
