@@ -19,6 +19,7 @@ interface LeafletMapProps {
   showHeatmap?: boolean;
   showRoutes?: boolean;
   showNodes?: boolean;
+  showLocateMe?: boolean;
   height?: string;
   center?: [number, number];
   zoom?: number;
@@ -29,6 +30,7 @@ export default function LeafletMap({
   showHeatmap = false,
   showRoutes = true,
   showNodes = true,
+  showLocateMe = false,
   height = "500px",
   center = LESOTHO_CENTER,
   zoom = 8,
@@ -109,6 +111,36 @@ export default function LeafletMap({
       map.on("click", (e: L.LeafletMouseEvent) => {
         onMapClick(e.latlng.lat, e.latlng.lng);
       });
+    }
+
+    // Add Locate Me control
+    if (showLocateMe) {
+      const LocateControl = L.Control.extend({
+        onAdd: () => {
+          const btn = L.DomUtil.create("button", "leaflet-bar leaflet-control");
+          btn.innerHTML = "📍 Locate Me";
+          btn.style.cssText =
+            "background:#1e293b;color:#14b8a6;border:1px solid #334155;padding:6px 12px;cursor:pointer;font-size:13px;font-weight:600;border-radius:6px;white-space:nowrap;";
+          btn.title = "Find my location";
+          L.DomEvent.disableClickPropagation(btn);
+          btn.onclick = () => {
+            if (!navigator.geolocation) return;
+            navigator.geolocation.getCurrentPosition(
+              (pos) => {
+                const { latitude, longitude } = pos.coords;
+                map.setView([latitude, longitude], 14);
+                L.marker([latitude, longitude])
+                  .addTo(map)
+                  .bindPopup("<strong>You are here</strong>")
+                  .openPopup();
+              },
+              () => alert("Could not detect your location")
+            );
+          };
+          return btn;
+        },
+      });
+      new LocateControl({ position: "topright" }).addTo(map);
     }
 
     return () => {
