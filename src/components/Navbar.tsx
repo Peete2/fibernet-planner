@@ -20,7 +20,10 @@ export default function Navbar() {
 
   const navLinks = [
     ...publicLinks,
+    ...(user ? [{ to: "/dashboard", label: "My Apps" }] : []),
+    ...(user && hasRole("technician") ? [{ to: "/tech", label: "Tech Jobs" }] : []),
     ...(user && hasRole("admin") ? [{ to: "/admin", label: "Admin" }] : []),
+    ...(user ? [{ to: "/profile", label: "Profile" }] : []),
     ...(!user ? [{ to: "/admin-login", label: "Admin Login" }] : []),
   ];
 

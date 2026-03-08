@@ -273,8 +273,9 @@ export default function Admin() {
             {/* ========== APPLICATIONS ========== */}
             <TabsContent value="applications">
               <div className="bg-card border border-border rounded-xl shadow-telecom overflow-hidden">
-                <div className="p-5 border-b border-border">
+                <div className="p-5 border-b border-border flex items-center justify-between">
                   <h3 className="font-display font-semibold text-foreground">All Applications ({applications.length})</h3>
+                  <CreateApplicationDialog onCreated={fetchData} />
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
