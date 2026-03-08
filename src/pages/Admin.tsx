@@ -431,7 +431,7 @@ export default function Admin() {
                               ) : (
                                 <>
                                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => startEdit(app)}><Pencil className="w-3.5 h-3.5" /></Button>
-                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteApp(app.id)}><Trash2 className="w-3.5 h-3.5 text-destructive" /></Button>
+                                  <ConfirmDialog onConfirm={() => deleteApp(app.id)} title="Delete application?" description={`This will permanently delete application ${app.ref_code}.`} />
                                 </>
                               )}
                             </div>
