@@ -24,6 +24,7 @@ export default function Apply() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({
+    accountType: "individual",
     name: profile?.full_name || "",
     email: profile?.email || user?.email || "",
     phone: profile?.phone || "",
