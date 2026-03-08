@@ -21,6 +21,7 @@ export default function Navbar() {
   const navLinks = [
     ...publicLinks,
     ...(user && hasRole("admin") ? [{ to: "/admin", label: "Admin" }] : []),
+    ...(!user ? [{ to: "/admin-login", label: "Admin Login" }] : []),
   ];
 
   const handleSignOut = async () => {
