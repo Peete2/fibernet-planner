@@ -84,7 +84,7 @@ export default function NotificationBell() {
             notifications.map((n) => (
               <div
                 key={n.id}
-                className={`px-4 py-3 border-b border-border last:border-0 ${!n.read ? "bg-secondary/5" : ""}`}
+                className={`px-4 py-3 border-b border-border last:border-0 ${!n.read ? "bg-primary/5" : ""}`}
               >
                 <p className="text-sm font-medium text-foreground">{n.title}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">{n.message}</p>
