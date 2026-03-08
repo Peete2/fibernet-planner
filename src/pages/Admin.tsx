@@ -603,7 +603,7 @@ export default function Admin() {
                       <XAxis dataKey="month" tick={{ fontSize: 11, fill: "hsl(220 10% 45%)" }} />
                       <YAxis tick={{ fontSize: 11, fill: "hsl(220 10% 45%)" }} />
                       <Tooltip />
-                      <Line type="monotone" dataKey="count" stroke="hsl(180 70% 40%)" strokeWidth={2} dot={{ r: 4 }} />
+                      <Line type="monotone" dataKey="count" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 4 }} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
