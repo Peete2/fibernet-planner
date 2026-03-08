@@ -21,6 +21,11 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+function InactivityGuard({ children }: { children: React.ReactNode }) {
+  useInactivityLogout();
+  return <>{children}</>;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -28,6 +33,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <InactivityGuard>
           <Navbar />
           <Routes>
             <Route path="/" element={<Index />} />
