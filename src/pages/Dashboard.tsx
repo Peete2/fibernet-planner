@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Clock, CheckCircle, Wrench, CalendarDays, FileText, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import Footer from "@/components/Footer";
 
 const statusColors: Record<string, string> = {
   Submitted: "hsl(var(--status-submitted))",
