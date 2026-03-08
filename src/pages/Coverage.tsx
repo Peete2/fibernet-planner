@@ -34,6 +34,7 @@ export default function Coverage() {
             showHeatmap={showHeatmap}
             showRoutes={true}
             showNodes={true}
+            showLocateMe={true}
             height="600px"
           />
 
