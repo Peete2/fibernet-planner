@@ -62,6 +62,7 @@ export default function Navbar() {
 
           {user ? (
             <div className="flex items-center gap-2 ml-3">
+              <NotificationBell />
               <span className="text-xs text-primary-foreground/60 flex items-center gap-1">
                 <User className="w-3 h-3" />
                 {profile?.full_name || user.email}
