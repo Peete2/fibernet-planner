@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { DISTRICTS } from "@/lib/mock-data";
 import Footer from "@/components/Footer";
+import PageSkeleton from "@/components/PageSkeleton";
 
 const accountTypes = [
   { value: "individual", label: "Individual", icon: UserRound },

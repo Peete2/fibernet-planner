@@ -16,6 +16,7 @@ import SystemLogsPanel from "@/components/SystemLogsPanel";
 import AdminUserManagement from "@/components/AdminUserManagement";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import Footer from "@/components/Footer";
+import PageSkeleton from "@/components/PageSkeleton";
 
 const statusColors: Record<string, string> = {
   Submitted: "hsl(45 90% 50%)",

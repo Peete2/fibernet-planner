@@ -6,6 +6,7 @@ import { Clock, CheckCircle, Wrench, CalendarDays, FileText, MapPin } from "luci
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Footer from "@/components/Footer";
+import PageSkeleton from "@/components/PageSkeleton";
 
 const statusColors: Record<string, string> = {
   Submitted: "hsl(var(--status-submitted))",
