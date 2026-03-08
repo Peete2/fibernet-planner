@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from "recharts";
 import { DISTRICTS } from "@/lib/mock-data";
-import { Users, FileText, CheckCircle, Wifi, Pencil, Trash2, X, Save, BarChart3, Route, Flame, CalendarDays, UserCheck } from "lucide-react";
+import { Users, FileText, CheckCircle, Wifi, Pencil, Trash2, X, Save, BarChart3, Route, Flame, CalendarDays, UserCheck, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import LeafletMap from "@/components/LeafletMap";
 import AdminDrawMap from "@/components/AdminDrawMap";
+import CreateApplicationDialog from "@/components/CreateApplicationDialog";
 
 const statusColors: Record<string, string> = {
   Submitted: "hsl(45 90% 50%)",
@@ -272,8 +273,9 @@ export default function Admin() {
             {/* ========== APPLICATIONS ========== */}
             <TabsContent value="applications">
               <div className="bg-card border border-border rounded-xl shadow-telecom overflow-hidden">
-                <div className="p-5 border-b border-border">
+                <div className="p-5 border-b border-border flex items-center justify-between">
                   <h3 className="font-display font-semibold text-foreground">All Applications ({applications.length})</h3>
+                  <CreateApplicationDialog onCreated={fetchData} />
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
