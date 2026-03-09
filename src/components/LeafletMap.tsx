@@ -37,6 +37,7 @@ export default function LeafletMap({
   center = LESOTHO_CENTER,
   zoom = 8,
   onMapClick,
+  flyTo,
 }: LeafletMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
