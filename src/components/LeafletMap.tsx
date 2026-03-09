@@ -25,6 +25,7 @@ interface LeafletMapProps {
   center?: [number, number];
   zoom?: number;
   onMapClick?: (lat: number, lng: number) => void;
+  flyTo?: { lat: number; lng: number; label: string } | null;
 }
 
 export default function LeafletMap({
@@ -36,6 +37,7 @@ export default function LeafletMap({
   center = LESOTHO_CENTER,
   zoom = 8,
   onMapClick,
+  flyTo,
 }: LeafletMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
@@ -149,6 +151,17 @@ export default function LeafletMap({
       mapInstance.current = null;
     };
   }, []);
+
+  // Handle flyTo changes
+  useEffect(() => {
+    if (!flyTo || !mapInstance.current) return;
+    const map = mapInstance.current;
+    map.flyTo([flyTo.lat, flyTo.lng], 14);
+    L.marker([flyTo.lat, flyTo.lng])
+      .addTo(map)
+      .bindPopup(`<strong>${flyTo.label}</strong>`)
+      .openPopup();
+  }, [flyTo]);
 
   return (
     <div
