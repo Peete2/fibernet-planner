@@ -50,7 +50,19 @@ export default function Coverage() {
             Explore fiber nodes, routes, and demand heatmap across Lesotho.
           </p>
 
-          <div className="flex gap-3 mb-4">
+          <div className="flex flex-col sm:flex-row gap-3 mb-4">
+            <div className="flex gap-2 flex-1 max-w-md">
+              <Input
+                placeholder="Search location in Lesotho..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+              />
+              <Button size="sm" onClick={handleSearch} disabled={searching}>
+                <Search className="h-4 w-4 mr-1" />
+                {searching ? "..." : "Search"}
+              </Button>
+            </div>
             <Button variant={showHeatmap ? "default" : "outline"} size="sm" onClick={toggleHeatmap}>
               {showHeatmap ? "Hide Heatmap" : "Show Demand Heatmap"}
             </Button>
@@ -63,6 +75,7 @@ export default function Coverage() {
             showNodes={true}
             showLocateMe={true}
             height="600px"
+            flyTo={flyTo}
           />
 
           <div className="mt-6 grid sm:grid-cols-3 gap-4">
