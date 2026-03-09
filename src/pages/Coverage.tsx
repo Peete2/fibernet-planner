@@ -1,16 +1,42 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import LeafletMap from "@/components/LeafletMap";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
+import { Search } from "lucide-react";
 import Footer from "@/components/Footer";
+import { toast } from "sonner";
 
 export default function Coverage() {
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [key, setKey] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searching, setSearching] = useState(false);
+  const [flyTo, setFlyTo] = useState<{ lat: number; lng: number; label: string } | null>(null);
 
   const toggleHeatmap = () => {
     setShowHeatmap((v) => !v);
     setKey((k) => k + 1);
+  };
+
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
+    setSearching(true);
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery + ", Lesotho")}&limit=1`
+      );
+      const data = await res.json();
+      if (data.length > 0) {
+        setFlyTo({ lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon), label: data[0].display_name.split(",")[0] });
+      } else {
+        toast.error("Location not found. Try a different search term.");
+      }
+    } catch {
+      toast.error("Search failed. Please try again.");
+    } finally {
+      setSearching(false);
+    }
   };
 
   return (
