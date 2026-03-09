@@ -25,6 +25,7 @@ interface LeafletMapProps {
   center?: [number, number];
   zoom?: number;
   onMapClick?: (lat: number, lng: number) => void;
+  flyTo?: { lat: number; lng: number; label: string } | null;
 }
 
 export default function LeafletMap({
