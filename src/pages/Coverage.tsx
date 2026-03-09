@@ -1,11 +1,17 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import LeafletMap from "@/components/LeafletMap";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
-import { Search } from "lucide-react";
+import { Search, MapPin, Loader2 } from "lucide-react";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
+
+interface NominatimResult {
+  lat: string;
+  lon: string;
+  display_name: string;
+}
 
 export default function Coverage() {
   const [showHeatmap, setShowHeatmap] = useState(false);
@@ -13,6 +19,45 @@ export default function Coverage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searching, setSearching] = useState(false);
   const [flyTo, setFlyTo] = useState<{ lat: number; lng: number; label: string } | null>(null);
+  const [suggestions, setSuggestions] = useState<NominatimResult[]>([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const fetchSuggestions = useCallback(async (query: string) => {
+    if (query.trim().length < 2) {
+      setSuggestions([]);
+      return;
+    }
+    setLoadingSuggestions(true);
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + ", Lesotho")}&limit=5`
+      );
+      const data: NominatimResult[] = await res.json();
+      setSuggestions(data);
+      setShowSuggestions(true);
+    } catch {
+      setSuggestions([]);
+    } finally {
+      setLoadingSuggestions(false);
+    }
+  }, []);
+
+  const handleInputChange = (value: string) => {
+    setSearchQuery(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => fetchSuggestions(value), 400);
+  };
+
+  const selectSuggestion = (result: NominatimResult) => {
+    const label = result.display_name.split(",")[0];
+    setSearchQuery(label);
+    setShowSuggestions(false);
+    setSuggestions([]);
+    setFlyTo({ lat: parseFloat(result.lat), lng: parseFloat(result.lon), label });
+  };
 
   const toggleHeatmap = () => {
     setShowHeatmap((v) => !v);
@@ -21,6 +66,7 @@ export default function Coverage() {
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
+    setShowSuggestions(false);
     setSearching(true);
     try {
       const res = await fetch(
@@ -39,6 +85,17 @@ export default function Coverage() {
     }
   };
 
+  // Close suggestions on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
   return (
     <div className="pt-20 min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
@@ -51,13 +108,41 @@ export default function Coverage() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 mb-4">
-            <div className="flex gap-2 flex-1 max-w-md">
-              <Input
-                placeholder="Search location in Lesotho..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              />
+            <div className="relative flex gap-2 flex-1 max-w-md" ref={containerRef}>
+              <div className="relative flex-1">
+                <Input
+                  placeholder="Search location in Lesotho..."
+                  value={searchQuery}
+                  onChange={(e) => handleInputChange(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      setShowSuggestions(false);
+                      handleSearch();
+                    }
+                  }}
+                  onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                />
+                {showSuggestions && (suggestions.length > 0 || loadingSuggestions) && (
+                  <div className="absolute top-full left-0 right-0 z-50 mt-1 rounded-md border border-border bg-popover shadow-md overflow-hidden">
+                    {loadingSuggestions && (
+                      <div className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        Searching...
+                      </div>
+                    )}
+                    {suggestions.map((s, i) => (
+                      <button
+                        key={i}
+                        className="flex items-center gap-2 w-full px-3 py-2.5 text-sm text-left text-popover-foreground hover:bg-accent transition-colors cursor-pointer"
+                        onClick={() => selectSuggestion(s)}
+                      >
+                        <MapPin className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                        <span className="truncate">{s.display_name}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
               <Button size="sm" onClick={handleSearch} disabled={searching}>
                 <Search className="h-4 w-4 mr-1" />
                 {searching ? "..." : "Search"}
