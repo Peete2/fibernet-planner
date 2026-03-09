@@ -152,6 +152,17 @@ export default function LeafletMap({
     };
   }, []);
 
+  // Handle flyTo changes
+  useEffect(() => {
+    if (!flyTo || !mapInstance.current) return;
+    const map = mapInstance.current;
+    map.flyTo([flyTo.lat, flyTo.lng], 14);
+    L.marker([flyTo.lat, flyTo.lng])
+      .addTo(map)
+      .bindPopup(`<strong>${flyTo.label}</strong>`)
+      .openPopup();
+  }, [flyTo]);
+
   return (
     <div
       ref={mapRef}
