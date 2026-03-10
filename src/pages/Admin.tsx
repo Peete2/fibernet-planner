@@ -17,6 +17,8 @@ import AdminUserManagement from "@/components/AdminUserManagement";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import Footer from "@/components/Footer";
 import PageSkeleton from "@/components/PageSkeleton";
+import AISuggestionsPanel from "@/components/AISuggestionsPanel";
+import { generateApplicationPDF } from "@/lib/pdf-generator";
 
 const statusColors: Record<string, string> = {
   Submitted: "hsl(45 90% 50%)",
