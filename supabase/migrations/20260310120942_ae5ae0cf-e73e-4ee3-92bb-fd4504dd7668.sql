@@ -1,0 +1,1 @@
+ALTER TABLE public.fiber_nodes ADD COLUMN IF NOT EXISTS connected_customers integer NOT NULL DEFAULT 0;

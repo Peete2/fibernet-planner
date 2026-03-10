@@ -163,10 +163,11 @@ export default function Coverage() {
             flyTo={flyTo}
           />
 
-          <div className="mt-6 grid sm:grid-cols-3 gap-4">
+          <div className="mt-6 grid sm:grid-cols-4 gap-4">
             {[
-              { color: "bg-primary", label: "Active Node" },
-              { color: "bg-accent", label: "Planned Node" },
+              { color: "bg-[hsl(170,60%,45%)]", label: "Active AP (Available)" },
+              { color: "bg-[hsl(45,95%,55%)]", label: "Active AP (Full)" },
+              { color: "bg-[hsl(240,60%,55%)]", label: "Planned AP" },
               { color: "bg-destructive", label: "Maintenance" },
             ].map((item) => (
               <div key={item.label} className="flex items-center gap-2 text-sm text-muted-foreground">
