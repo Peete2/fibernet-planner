@@ -777,6 +777,13 @@ export default function Admin() {
               </div>
             </TabsContent>
 
+            {/* ========== AI PLANNER ========== */}
+            <TabsContent value="ai-planner">
+              <div className="bg-card border border-border rounded-xl p-5 shadow-telecom">
+                <AISuggestionsPanel onNodeCreated={fetchData} />
+              </div>
+            </TabsContent>
+
             {/* ========== HEATMAP ========== */}
             <TabsContent value="heatmap">
               <div className="bg-card border border-border rounded-xl p-5 shadow-telecom">
