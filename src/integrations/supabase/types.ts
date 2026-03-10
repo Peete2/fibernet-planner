@@ -77,6 +77,7 @@ export type Database = {
       fiber_nodes: {
         Row: {
           capacity: number
+          connected_customers: number
           created_at: string
           id: string
           latitude: number
@@ -87,6 +88,7 @@ export type Database = {
         }
         Insert: {
           capacity?: number
+          connected_customers?: number
           created_at?: string
           id?: string
           latitude: number
@@ -97,6 +99,7 @@ export type Database = {
         }
         Update: {
           capacity?: number
+          connected_customers?: number
           created_at?: string
           id?: string
           latitude?: number
