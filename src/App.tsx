@@ -40,7 +40,14 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/coverage" element={<Coverage />} />
             <Route path="/apply" element={<Apply />} />
-            <Route path="/track" element={<Track />} />
+            <Route
+              path="/track"
+              element={
+                <ProtectedRoute>
+                  <Track />
+                </ProtectedRoute>
+              }
+            />
             <Route path="/login" element={<Login />} />
             <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/reset-password" element={<ResetPassword />} />

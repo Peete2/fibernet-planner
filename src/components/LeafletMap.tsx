@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet.heat";
@@ -28,6 +28,16 @@ interface LeafletMapProps {
   flyTo?: { lat: number; lng: number; label: string } | null;
 }
 
+function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 export default function LeafletMap({
   showHeatmap = false,
   showRoutes = true,
@@ -41,6 +51,12 @@ export default function LeafletMap({
 }: LeafletMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
+  const userLocationRef = useRef<[number, number] | null>(null);
+  const nodesLayerRef = useRef<L.LayerGroup | null>(null);
+
+  // Tile layers
+  const darkTileRef = useRef<L.TileLayer | null>(null);
+  const satelliteTileRef = useRef<L.TileLayer | null>(null);
 
   useEffect(() => {
     if (!mapRef.current || mapInstance.current) return;
@@ -48,28 +64,72 @@ export default function LeafletMap({
     const map = L.map(mapRef.current).setView(center, zoom);
     mapInstance.current = map;
 
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+    // Dark street tiles (default)
+    const darkTile = L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
     }).addTo(map);
+    darkTileRef.current = darkTile;
 
-    // Load real data
+    // ESRI Satellite tiles
+    const satelliteTile = L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+      {
+        attribution: '&copy; <a href="https://www.esri.com/">Esri</a>',
+      }
+    );
+    satelliteTileRef.current = satelliteTile;
+
+    // Layer control
+    const baseMaps: Record<string, L.TileLayer> = {
+      "🗺️ Street": darkTile,
+      "🛰️ Satellite": satelliteTile,
+    };
+    L.control.layers(baseMaps, {}, { position: "topright" }).addTo(map);
+
+    // Nodes layer group
+    const nodesLayer = L.layerGroup().addTo(map);
+    nodesLayerRef.current = nodesLayer;
+
     const loadData = async () => {
       if (showNodes) {
         const { data: nodes } = await supabase.from("fiber_nodes").select("*");
         nodes?.forEach((node) => {
-          const color = node.status === "Active" ? "#14b8a6" : node.status === "Planned" ? "#f59e0b" : "#ef4444";
+          const isFull = node.connected_customers >= node.capacity;
+          const available = Math.max(0, node.capacity - node.connected_customers);
+          const color = node.status === "Active"
+            ? isFull ? "#f59e0b" : "#14b8a6"
+            : node.status === "Planned"
+            ? "#6366f1"
+            : "#ef4444";
+
+          const userLoc = userLocationRef.current;
+          const distHtml = userLoc
+            ? `<br/>📏 ${haversineDistance(userLoc[0], userLoc[1], node.latitude, node.longitude).toFixed(1)} km from you`
+            : "";
+
+          const statusLabel = isFull ? "🔴 FULL" : `🟢 ${available} slots available`;
+
           L.circleMarker([node.latitude, node.longitude], {
             radius: Math.min(node.capacity / 500, 12) + 4,
             fillColor: color,
             color: color,
             weight: 2,
             opacity: 0.9,
-            fillOpacity: 0.5,
+            fillOpacity: 0.6,
           })
             .bindPopup(
-              `<div style="font-family:Inter,sans-serif"><strong>${node.name}</strong><br/>Capacity: ${node.capacity}<br/>Status: <span style="color:${color}">${node.status}</span></div>`
+              `<div style="font-family:Inter,sans-serif;min-width:180px">
+                <strong style="font-size:14px">📡 AP: ${node.name}</strong>
+                <hr style="border-color:#334155;margin:6px 0"/>
+                <div style="font-size:12px;line-height:1.8">
+                  Status: <span style="color:${color};font-weight:600">${node.status}</span><br/>
+                  Capacity: <strong>${node.connected_customers}</strong> / ${node.capacity}<br/>
+                  ${statusLabel}
+                  ${distHtml}
+                </div>
+              </div>`
             )
-            .addTo(map);
+            .addTo(nodesLayer);
         });
       }
 
@@ -89,7 +149,6 @@ export default function LeafletMap({
       }
 
       if (showHeatmap) {
-        // Use application locations as heatmap points
         const { data: apps } = await supabase
           .from("applications")
           .select("latitude, longitude")
@@ -116,7 +175,7 @@ export default function LeafletMap({
       });
     }
 
-    // Add Locate Me control
+    // Locate Me control
     if (showLocateMe) {
       const LocateControl = L.Control.extend({
         onAdd: () => {
@@ -129,13 +188,70 @@ export default function LeafletMap({
           btn.onclick = () => {
             if (!navigator.geolocation) return;
             navigator.geolocation.getCurrentPosition(
-              (pos) => {
+              async (pos) => {
                 const { latitude, longitude } = pos.coords;
+                userLocationRef.current = [latitude, longitude];
                 map.setView([latitude, longitude], 14);
-                L.marker([latitude, longitude])
+
+                const userIcon = L.divIcon({
+                  html: '<div style="width:16px;height:16px;background:#3b82f6;border:3px solid white;border-radius:50%;box-shadow:0 0 8px rgba(59,130,246,0.6)"></div>',
+                  className: "",
+                  iconSize: [16, 16],
+                  iconAnchor: [8, 8],
+                });
+
+                L.marker([latitude, longitude], { icon: userIcon })
                   .addTo(map)
-                  .bindPopup("<strong>You are here</strong>")
+                  .bindPopup("<strong>📍 You are here</strong>")
                   .openPopup();
+
+                // Refresh nodes with distance info
+                if (showNodes && nodesLayerRef.current) {
+                  nodesLayerRef.current.clearLayers();
+                  const { data: nodes } = await supabase.from("fiber_nodes").select("*");
+                  nodes?.forEach((node) => {
+                    const isFull = node.connected_customers >= node.capacity;
+                    const available = Math.max(0, node.capacity - node.connected_customers);
+                    const color = node.status === "Active"
+                      ? isFull ? "#f59e0b" : "#14b8a6"
+                      : node.status === "Planned"
+                      ? "#6366f1"
+                      : "#ef4444";
+
+                    const dist = haversineDistance(latitude, longitude, node.latitude, node.longitude);
+                    const statusLabel = isFull ? "🔴 FULL" : `🟢 ${available} slots available`;
+
+                    L.circleMarker([node.latitude, node.longitude], {
+                      radius: Math.min(node.capacity / 500, 12) + 4,
+                      fillColor: color,
+                      color: color,
+                      weight: 2,
+                      opacity: 0.9,
+                      fillOpacity: 0.6,
+                    })
+                      .bindPopup(
+                        `<div style="font-family:Inter,sans-serif;min-width:180px">
+                          <strong style="font-size:14px">📡 AP: ${node.name}</strong>
+                          <hr style="border-color:#334155;margin:6px 0"/>
+                          <div style="font-size:12px;line-height:1.8">
+                            Status: <span style="color:${color};font-weight:600">${node.status}</span><br/>
+                            Capacity: <strong>${node.connected_customers}</strong> / ${node.capacity}<br/>
+                            ${statusLabel}<br/>
+                            📏 <strong>${dist.toFixed(1)} km</strong> from you
+                          </div>
+                        </div>`
+                      )
+                      .addTo(nodesLayerRef.current!);
+
+                    // Draw distance line
+                    L.polyline([[latitude, longitude], [node.latitude, node.longitude]], {
+                      color: "#3b82f6",
+                      weight: 1,
+                      opacity: 0.3,
+                      dashArray: "4 4",
+                    }).addTo(nodesLayerRef.current!);
+                  });
+                }
               },
               () => alert("Could not detect your location")
             );
