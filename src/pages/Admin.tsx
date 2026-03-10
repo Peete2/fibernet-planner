@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from "recharts";
 import { DISTRICTS } from "@/lib/mock-data";
-import { Users, FileText, CheckCircle, Wifi, Pencil, Trash2, X, Save, BarChart3, Route, Flame, CalendarDays, UserCheck, Plus, Search, ChevronLeft, ChevronRight, ScrollText, UsersRound } from "lucide-react";
+import { Users, FileText, CheckCircle, Wifi, Pencil, Trash2, X, Save, BarChart3, Route, Flame, CalendarDays, UserCheck, Plus, Search, ChevronLeft, ChevronRight, ScrollText, UsersRound, Download, Brain } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -17,6 +17,8 @@ import AdminUserManagement from "@/components/AdminUserManagement";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import Footer from "@/components/Footer";
 import PageSkeleton from "@/components/PageSkeleton";
+import AISuggestionsPanel from "@/components/AISuggestionsPanel";
+import { generateApplicationPDF } from "@/lib/pdf-generator";
 
 const statusColors: Record<string, string> = {
   Submitted: "hsl(45 90% 50%)",
@@ -281,6 +283,7 @@ export default function Admin() {
               <TabsTrigger value="analytics" className="gap-1.5"><BarChart3 className="w-4 h-4" />Analytics</TabsTrigger>
               <TabsTrigger value="plan" className="gap-1.5"><Route className="w-4 h-4" />Plan Routes</TabsTrigger>
               <TabsTrigger value="nodes" className="gap-1.5"><Wifi className="w-4 h-4" />Manage Nodes</TabsTrigger>
+              <TabsTrigger value="ai-planner" className="gap-1.5"><Brain className="w-4 h-4" />AI Planner</TabsTrigger>
               <TabsTrigger value="heatmap" className="gap-1.5"><Flame className="w-4 h-4" />Heatmap</TabsTrigger>
               <TabsTrigger value="users" className="gap-1.5"><UsersRound className="w-4 h-4" />Users</TabsTrigger>
               <TabsTrigger value="logs" className="gap-1.5"><ScrollText className="w-4 h-4" />System Logs</TabsTrigger>
@@ -426,6 +429,11 @@ export default function Admin() {
                               ) : (
                                 <>
                                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => startEdit(app)}><Pencil className="w-3.5 h-3.5" /></Button>
+                                  <Button variant="ghost" size="icon" className="h-7 w-7" title="Download PDF" onClick={async () => {
+                                    const { data } = await supabase.from("applications").select("*").eq("id", app.id).single();
+                                    if (data) generateApplicationPDF(data as any);
+                                    else toast.error("Failed to load application data");
+                                  }}><Download className="w-3.5 h-3.5" /></Button>
                                   <ConfirmDialog onConfirm={() => deleteApp(app.id)} title="Delete application?" description={`This will permanently delete application ${app.ref_code}.`} />
                                 </>
                               )}
@@ -766,6 +774,13 @@ export default function Admin() {
                     </div>
                   </div>
                 )}
+              </div>
+            </TabsContent>
+
+            {/* ========== AI PLANNER ========== */}
+            <TabsContent value="ai-planner">
+              <div className="bg-card border border-border rounded-xl p-5 shadow-telecom">
+                <AISuggestionsPanel onNodeCreated={fetchData} />
               </div>
             </TabsContent>
 
