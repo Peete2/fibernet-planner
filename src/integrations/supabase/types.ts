@@ -17,15 +17,22 @@ export type Database = {
       applications: {
         Row: {
           account_type: string
+          address: string | null
+          building_type: string | null
           created_at: string
           customer_name: string
           district: string
           email: string | null
+          floors: number | null
           id: string
           latitude: number | null
           location: string | null
           longitude: number | null
+          national_id: string | null
+          nearest_landmark: string | null
+          notes: string | null
           phone: string | null
+          preferred_date: string | null
           ref_code: string
           scheduled_date: string | null
           service: string
@@ -36,15 +43,22 @@ export type Database = {
         }
         Insert: {
           account_type?: string
+          address?: string | null
+          building_type?: string | null
           created_at?: string
           customer_name: string
           district: string
           email?: string | null
+          floors?: number | null
           id?: string
           latitude?: number | null
           location?: string | null
           longitude?: number | null
+          national_id?: string | null
+          nearest_landmark?: string | null
+          notes?: string | null
           phone?: string | null
+          preferred_date?: string | null
           ref_code?: string
           scheduled_date?: string | null
           service: string
@@ -55,15 +69,22 @@ export type Database = {
         }
         Update: {
           account_type?: string
+          address?: string | null
+          building_type?: string | null
           created_at?: string
           customer_name?: string
           district?: string
           email?: string | null
+          floors?: number | null
           id?: string
           latitude?: number | null
           location?: string | null
           longitude?: number | null
+          national_id?: string | null
+          nearest_landmark?: string | null
+          notes?: string | null
           phone?: string | null
+          preferred_date?: string | null
           ref_code?: string
           scheduled_date?: string | null
           service?: string
