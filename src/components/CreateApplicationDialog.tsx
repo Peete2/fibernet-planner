@@ -82,13 +82,11 @@ export default function CreateApplicationDialog({ onCreated }: Props) {
             </div>
           </div>
           <div>
-            <Label>Service *</Label>
-            <Select value={form.service} onValueChange={(v) => setForm({ ...form, service: v })}>
-              <SelectTrigger><SelectValue placeholder="Select service" /></SelectTrigger>
-              <SelectContent>
-                {services.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <Label>Service Plan *</Label>
+            <ServicePlanSelector
+              value={form.servicePlanId}
+              onChange={(planId, planLabel) => setForm({ ...form, servicePlanId: planId, service: planLabel })}
+            />
           </div>
           <div>
             <Label>District *</Label>
