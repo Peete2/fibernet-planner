@@ -22,6 +22,7 @@ export default function CreateApplicationDialog({ onCreated }: Props) {
     email: "",
     phone: "",
     service: "",
+    servicePlanId: "",
     district: "",
     location: "",
   });
