@@ -9,12 +9,13 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { DISTRICTS } from "@/lib/mock-data";
+import ServicePlanSelector from "@/components/ServicePlanSelector";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import Footer from "@/components/Footer";
 
-const services = ["Fiber 50Mbps", "Fiber 100Mbps", "Fiber 200Mbps", "Wireless 20Mbps"];
+const services = ["Fiber 50Mbps", "Fiber 100Mbps", "Fiber 200Mbps", "Wireless 20Mbps"]; // legacy fallback
 const buildingTypes = [
   { value: "residential", label: "Residential House" },
   { value: "apartment", label: "Apartment / Flat" },
@@ -41,6 +42,7 @@ export default function Apply() {
     nationalId: "",
     address: "",
     service: "",
+    servicePlanId: "",
     district: profile?.district || "",
     location: "",
     buildingType: "residential",
@@ -124,7 +126,7 @@ export default function Apply() {
           <div className="flex gap-3 justify-center mt-6">
             <Button onClick={() => {
               setSubmittedRef(null);
-              setForm({ accountType: "individual", name: "", email: "", phone: "", nationalId: "", address: "", service: "", district: "", location: "", buildingType: "residential", floors: "1", nearestLandmark: "", preferredDate: "", notes: "", latitude: "", longitude: "" });
+              setForm({ accountType: "individual", name: "", email: "", phone: "", nationalId: "", address: "", service: "", servicePlanId: "", district: "", location: "", buildingType: "residential", floors: "1", nearestLandmark: "", preferredDate: "", notes: "", latitude: "", longitude: "" });
             }}>
               Submit Another
             </Button>
@@ -202,14 +204,14 @@ export default function Apply() {
             </div>
 
             <div className="grid sm:grid-cols-2 gap-4">
-              <div>
-                <Label>Service Plan *</Label>
-                <Select value={form.service} onValueChange={(v) => setForm({ ...form, service: v })}>
-                  <SelectTrigger><SelectValue placeholder="Select service" /></SelectTrigger>
-                  <SelectContent>
-                    {services.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+              <div className="sm:col-span-2">
+                <Label className="mb-2 block">Service Plan *</Label>
+                <ServicePlanSelector
+                  value={form.servicePlanId}
+                  onChange={(planId, planLabel) => setForm({ ...form, servicePlanId: planId, service: planLabel })}
+                  latitude={form.latitude}
+                  longitude={form.longitude}
+                />
               </div>
               <div>
                 <Label>District *</Label>
