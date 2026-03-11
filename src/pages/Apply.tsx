@@ -204,14 +204,14 @@ export default function Apply() {
             </div>
 
             <div className="grid sm:grid-cols-2 gap-4">
-              <div>
-                <Label>Service Plan *</Label>
-                <Select value={form.service} onValueChange={(v) => setForm({ ...form, service: v })}>
-                  <SelectTrigger><SelectValue placeholder="Select service" /></SelectTrigger>
-                  <SelectContent>
-                    {services.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+              <div className="sm:col-span-2">
+                <Label className="mb-2 block">Service Plan *</Label>
+                <ServicePlanSelector
+                  value={form.servicePlanId}
+                  onChange={(planId, planLabel) => setForm({ ...form, servicePlanId: planId, service: planLabel })}
+                  latitude={form.latitude}
+                  longitude={form.longitude}
+                />
               </div>
               <div>
                 <Label>District *</Label>
