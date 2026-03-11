@@ -48,7 +48,7 @@ export default function CreateApplicationDialog({ onCreated }: Props) {
       toast.error(error.message);
     } else {
       toast.success("Application created");
-      setForm({ customer_name: "", email: "", phone: "", service: "", district: "", location: "" });
+      setForm({ customer_name: "", email: "", phone: "", service: "", servicePlanId: "", district: "", location: "" });
       setOpen(false);
       onCreated();
     }
