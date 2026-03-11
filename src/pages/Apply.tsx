@@ -42,6 +42,7 @@ export default function Apply() {
     nationalId: "",
     address: "",
     service: "",
+    servicePlanId: "",
     district: profile?.district || "",
     location: "",
     buildingType: "residential",
