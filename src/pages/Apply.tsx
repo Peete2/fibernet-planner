@@ -126,7 +126,7 @@ export default function Apply() {
           <div className="flex gap-3 justify-center mt-6">
             <Button onClick={() => {
               setSubmittedRef(null);
-              setForm({ accountType: "individual", name: "", email: "", phone: "", nationalId: "", address: "", service: "", district: "", location: "", buildingType: "residential", floors: "1", nearestLandmark: "", preferredDate: "", notes: "", latitude: "", longitude: "" });
+              setForm({ accountType: "individual", name: "", email: "", phone: "", nationalId: "", address: "", service: "", servicePlanId: "", district: "", location: "", buildingType: "residential", floors: "1", nearestLandmark: "", preferredDate: "", notes: "", latitude: "", longitude: "" });
             }}>
               Submit Another
             </Button>
