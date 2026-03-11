@@ -19,6 +19,7 @@ import TechDashboard from "./pages/TechDashboard";
 import Profile from "./pages/Profile";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
+import Chatbot from "@/components/Chatbot";
 
 const queryClient = new QueryClient();
 
