@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Wifi, Radio, Cable, School, ChevronRight, ChevronLeft, MapPin, AlertCircle, Check, Loader2 } from "lucide-react";
+import { Wifi, Radio, Cable, School, ChevronRight, ChevronLeft, MapPin, AlertCircle, Check, Loader2, Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,6 +24,8 @@ interface PlanCategory {
   plans: ServicePlan[];
   requiresFibreCheck?: boolean;
 }
+
+export type ServiceCategoryId = "fmc" | "lte" | "fibre" | "fwa";
 
 const PLAN_CATEGORIES: PlanCategory[] = [
   {
@@ -183,21 +185,21 @@ const PLAN_CATEGORIES: PlanCategory[] = [
 
 // ── Fibre eligibility check ────────────────────────────────
 
-async function checkFibreEligibility(lat: number, lng: number): Promise<{ eligible: boolean; nodeName?: string }> {
-  const { data: nodes } = await supabase.from("fiber_nodes").select("*");
-  if (!nodes || nodes.length === 0) return { eligible: false };
+const MAX_FIBRE_DISTANCE_KM = 30;
 
-  const MAX_DISTANCE_KM = 5;
+async function checkFibreEligibility(lat: number, lng: number): Promise<{ eligible: boolean; nodeName?: string; suggestedCategories?: string[] }> {
+  const { data: nodes } = await supabase.from("fiber_nodes").select("*");
+  if (!nodes || nodes.length === 0) return { eligible: false, suggestedCategories: ["fmc", "lte"] };
 
   for (const node of nodes) {
     if (node.status !== "Active") continue;
     if (node.connected_customers >= node.capacity) continue;
     const dist = haversine(lat, lng, node.latitude, node.longitude);
-    if (dist <= MAX_DISTANCE_KM) {
+    if (dist <= MAX_FIBRE_DISTANCE_KM) {
       return { eligible: true, nodeName: node.name };
     }
   }
-  return { eligible: false };
+  return { eligible: false, suggestedCategories: ["fmc", "lte", "fwa"] };
 }
 
 function haversine(lat1: number, lon1: number, lat2: number, lon2: number) {
@@ -214,18 +216,26 @@ function haversine(lat1: number, lon1: number, lat2: number, lon2: number) {
 
 interface Props {
   value: string;
-  onChange: (planId: string, planLabel: string) => void;
+  onChange: (planId: string, planLabel: string, categoryId: ServiceCategoryId) => void;
   latitude?: string;
   longitude?: string;
+  accountType?: string;
 }
 
-export default function ServicePlanSelector({ value, onChange, latitude, longitude }: Props) {
+export default function ServicePlanSelector({ value, onChange, latitude, longitude, accountType }: Props) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [fibreEligible, setFibreEligible] = useState<boolean | null>(null);
   const [fibreNode, setFibreNode] = useState<string | null>(null);
   const [checkingFibre, setCheckingFibre] = useState(false);
+  const [suggestedCategories, setSuggestedCategories] = useState<string[]>([]);
 
-  const activeCategory = PLAN_CATEGORIES.find((c) => c.id === selectedCategory);
+  // Filter out Limited Wi-Fi for business accounts
+  const visibleCategories = PLAN_CATEGORIES.filter((cat) => {
+    if (accountType === "business" && cat.id === "fwa") return false;
+    return true;
+  });
+
+  const activeCategory = visibleCategories.find((c) => c.id === selectedCategory);
 
   // Check fibre eligibility when selecting fibre category
   useEffect(() => {
@@ -242,18 +252,21 @@ export default function ServicePlanSelector({ value, onChange, latitude, longitu
     checkFibreEligibility(lat, lng).then((res) => {
       setFibreEligible(res.eligible);
       setFibreNode(res.nodeName || null);
+      setSuggestedCategories(res.suggestedCategories || []);
       setCheckingFibre(false);
     });
   }, [selectedCategory, latitude, longitude]);
 
-  // Find which category+plan matches the current value
   const selectedPlan = PLAN_CATEGORIES.flatMap((c) => c.plans).find((p) => p.id === value);
+
+  const handleSuggestionClick = (catId: string) => {
+    setSelectedCategory(catId);
+  };
 
   return (
     <div className="space-y-3">
       <AnimatePresence mode="wait">
         {!selectedCategory ? (
-          /* ── Category grid ── */
           <motion.div
             key="categories"
             initial={{ opacity: 0, y: 10 }}
@@ -261,7 +274,7 @@ export default function ServicePlanSelector({ value, onChange, latitude, longitu
             exit={{ opacity: 0, y: -10 }}
             className="grid grid-cols-2 gap-3"
           >
-            {PLAN_CATEGORIES.map((cat) => {
+            {visibleCategories.map((cat) => {
               const Icon = cat.icon;
               const isActive = selectedPlan?.category === cat.label;
               return (
@@ -288,7 +301,6 @@ export default function ServicePlanSelector({ value, onChange, latitude, longitu
             })}
           </motion.div>
         ) : (
-          /* ── Plan list for selected category ── */
           <motion.div
             key="plans"
             initial={{ opacity: 0, x: 30 }}
@@ -314,16 +326,44 @@ export default function ServicePlanSelector({ value, onChange, latitude, longitu
               <div className="rounded-lg border border-border p-3 text-sm">
                 {checkingFibre ? (
                   <span className="flex items-center gap-2 text-muted-foreground">
-                    <Loader2 className="w-4 h-4 animate-spin" /> Checking fibre coverage...
+                    <Loader2 className="w-4 h-4 animate-spin" /> Checking fibre coverage (30km radius)...
                   </span>
                 ) : !latitude || !longitude ? (
                   <span className="flex items-center gap-2 text-amber-600">
                     <MapPin className="w-4 h-4" /> Please detect your GPS location first to check fibre availability.
                   </span>
                 ) : fibreEligible === false ? (
-                  <span className="flex items-center gap-2 text-destructive">
-                    <AlertCircle className="w-4 h-4" /> No fibre coverage at your location. Try another service or check the coverage map.
-                  </span>
+                  <div className="space-y-3">
+                    <span className="flex items-center gap-2 text-destructive">
+                      <AlertCircle className="w-4 h-4" /> No fibre coverage within 30km of your location.
+                    </span>
+                    {suggestedCategories.length > 0 && (
+                      <div className="rounded-md bg-muted/50 p-2.5">
+                        <span className="flex items-center gap-1.5 text-xs font-medium text-foreground mb-2">
+                          <Lightbulb className="w-3.5 h-3.5 text-accent" /> We recommend these alternatives:
+                        </span>
+                        <div className="flex flex-wrap gap-2">
+                          {suggestedCategories.map((catId) => {
+                            const cat = visibleCategories.find((c) => c.id === catId);
+                            if (!cat) return null;
+                            return (
+                              <Button
+                                key={catId}
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="text-xs gap-1.5"
+                                onClick={() => handleSuggestionClick(catId)}
+                              >
+                                <cat.icon className="w-3.5 h-3.5" />
+                                {cat.label}
+                              </Button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 ) : fibreEligible === true ? (
                   <span className="flex items-center gap-2 text-green-600">
                     <Check className="w-4 h-4" /> Fibre available via <strong>{fibreNode}</strong>!
@@ -342,7 +382,7 @@ export default function ServicePlanSelector({ value, onChange, latitude, longitu
                     type="button"
                     disabled={disabled}
                     onClick={() => {
-                      onChange(plan.id, `${plan.category} – ${plan.name} (${plan.price})`);
+                      onChange(plan.id, `${plan.category} – ${plan.name} (${plan.price})`, selectedCategory as ServiceCategoryId);
                     }}
                     className={`w-full text-left rounded-lg border-2 p-3 transition-all ${
                       isSelected
@@ -382,7 +422,6 @@ export default function ServicePlanSelector({ value, onChange, latitude, longitu
         )}
       </AnimatePresence>
 
-      {/* Show current selection summary */}
       {selectedPlan && !selectedCategory && (
         <div className="rounded-lg bg-primary/5 border border-primary/20 p-3 flex items-center justify-between">
           <div>
