@@ -1,21 +1,21 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { MapPin, Loader2, CheckCircle, UserRound, School, Building2 } from "lucide-react";
+import { MapPin, Loader2, CheckCircle, UserRound, School, Building2, Upload, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { DISTRICTS } from "@/lib/mock-data";
-import ServicePlanSelector from "@/components/ServicePlanSelector";
+import ServicePlanSelector, { type ServiceCategoryId } from "@/components/ServicePlanSelector";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import Footer from "@/components/Footer";
 
-const services = ["Fiber 50Mbps", "Fiber 100Mbps", "Fiber 200Mbps", "Wireless 20Mbps"]; // legacy fallback
 const buildingTypes = [
   { value: "residential", label: "Residential House" },
   { value: "apartment", label: "Apartment / Flat" },
@@ -34,6 +34,7 @@ const accountTypes = [
 export default function Apply() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     accountType: "individual",
     name: profile?.full_name || "",
@@ -43,6 +44,7 @@ export default function Apply() {
     address: "",
     service: "",
     servicePlanId: "",
+    serviceCategory: "" as ServiceCategoryId | "",
     district: profile?.district || "",
     location: "",
     buildingType: "residential",
@@ -52,10 +54,23 @@ export default function Apply() {
     notes: "",
     latitude: "",
     longitude: "",
+    applicantRole: "" as "student" | "teacher" | "",
   });
   const [detecting, setDetecting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submittedRef, setSubmittedRef] = useState<string | null>(null);
+  const [documentFile, setDocumentFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  // Derived visibility flags based on selected service category
+  const cat = form.serviceCategory;
+  const showGPS = cat === "fibre";
+  const showLandmark = cat === "fibre";
+  const showBuildingType = cat === "fibre";
+  const showFloors = cat === "fibre";
+  const showAdditionalDetails = cat !== "fwa";
+  const showDocumentUpload = cat === "fwa";
+  const showApplicantRole = cat === "fwa";
 
   const detectGPS = () => {
     if (!navigator.geolocation) { toast.error("Geolocation not supported"); return; }
@@ -70,15 +85,49 @@ export default function Apply() {
     );
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File must be under 10MB");
+      return;
+    }
+    setDocumentFile(file);
+  };
+
+  const uploadDocument = async (userId: string): Promise<string | null> => {
+    if (!documentFile) return null;
+    const ext = documentFile.name.split(".").pop();
+    const path = `${userId}/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("fwa-documents").upload(path, documentFile);
+    if (error) {
+      toast.error("Document upload failed: " + error.message);
+      return null;
+    }
+    return path;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name || !form.service || !form.district) {
       toast.error("Please fill all required fields");
       return;
     }
+    if (cat === "fwa" && !form.applicantRole) {
+      toast.error("Please select whether you are a student or teacher");
+      return;
+    }
 
     setSubmitting(true);
     try {
+      let docUrl: string | null = null;
+      if (cat === "fwa" && documentFile) {
+        setUploading(true);
+        const uploaderId = user?.id || "anonymous";
+        docUrl = await uploadDocument(uploaderId);
+        setUploading(false);
+      }
+
       const { data, error } = await supabase
         .from("applications")
         .insert({
@@ -90,15 +139,17 @@ export default function Apply() {
           service: form.service,
           district: form.district,
           location: form.location.trim() || null,
-          building_type: form.buildingType,
-          floors: parseInt(form.floors) || 1,
-          nearest_landmark: form.nearestLandmark.trim() || null,
-          preferred_date: form.preferredDate || null,
-          notes: form.notes.trim() || null,
-          latitude: form.latitude ? parseFloat(form.latitude) : null,
-          longitude: form.longitude ? parseFloat(form.longitude) : null,
+          building_type: showBuildingType ? form.buildingType : null,
+          floors: showFloors ? (parseInt(form.floors) || 1) : null,
+          nearest_landmark: showLandmark ? (form.nearestLandmark.trim() || null) : null,
+          preferred_date: showAdditionalDetails ? (form.preferredDate || null) : null,
+          notes: showAdditionalDetails ? (form.notes.trim() || null) : null,
+          latitude: showGPS && form.latitude ? parseFloat(form.latitude) : null,
+          longitude: showGPS && form.longitude ? parseFloat(form.longitude) : null,
           user_id: user?.id || null,
           account_type: form.accountType,
+          document_url: docUrl,
+          applicant_role: form.applicantRole || null,
         } as any)
         .select("ref_code")
         .single();
@@ -126,7 +177,8 @@ export default function Apply() {
           <div className="flex gap-3 justify-center mt-6">
             <Button onClick={() => {
               setSubmittedRef(null);
-              setForm({ accountType: "individual", name: "", email: "", phone: "", nationalId: "", address: "", service: "", servicePlanId: "", district: "", location: "", buildingType: "residential", floors: "1", nearestLandmark: "", preferredDate: "", notes: "", latitude: "", longitude: "" });
+              setDocumentFile(null);
+              setForm({ accountType: "individual", name: "", email: "", phone: "", nationalId: "", address: "", service: "", servicePlanId: "", serviceCategory: "", district: "", location: "", buildingType: "residential", floors: "1", nearestLandmark: "", preferredDate: "", notes: "", latitude: "", longitude: "", applicantRole: "" });
             }}>
               Submit Another
             </Button>
@@ -150,7 +202,19 @@ export default function Apply() {
             {/* Account Type */}
             <div>
               <Label className="text-foreground mb-3 block font-semibold">Account Type *</Label>
-              <RadioGroup value={form.accountType} onValueChange={(val) => setForm({ ...form, accountType: val })} className="grid grid-cols-3 gap-2">
+              <RadioGroup
+                value={form.accountType}
+                onValueChange={(val) => {
+                  // Reset service selection when switching account type (business hides FWA)
+                  const resetService = val === "business" && form.serviceCategory === "fwa";
+                  setForm({
+                    ...form,
+                    accountType: val,
+                    ...(resetService ? { service: "", servicePlanId: "", serviceCategory: "" as ServiceCategoryId | "" } : {}),
+                  });
+                }}
+                className="grid grid-cols-3 gap-2"
+              >
                 {accountTypes.map(({ value, label, icon: Icon }) => (
                   <Label key={value} htmlFor={`apply-type-${value}`}
                     className={`flex flex-col items-center gap-1.5 rounded-lg border-2 p-3 cursor-pointer transition-colors ${
@@ -203,16 +267,21 @@ export default function Apply() {
               <h3 className="text-sm font-semibold text-primary uppercase tracking-wider border-b border-border pb-2">Service & Location</h3>
             </div>
 
+            {/* Service Plan - show before GPS so fibre can gate on it */}
+            <div>
+              <Label className="mb-2 block">Service Plan *</Label>
+              <ServicePlanSelector
+                value={form.servicePlanId}
+                onChange={(planId, planLabel, categoryId) =>
+                  setForm({ ...form, servicePlanId: planId, service: planLabel, serviceCategory: categoryId })
+                }
+                latitude={form.latitude}
+                longitude={form.longitude}
+                accountType={form.accountType}
+              />
+            </div>
+
             <div className="grid sm:grid-cols-2 gap-4">
-              <div className="sm:col-span-2">
-                <Label className="mb-2 block">Service Plan *</Label>
-                <ServicePlanSelector
-                  value={form.servicePlanId}
-                  onChange={(planId, planLabel) => setForm({ ...form, servicePlanId: planId, service: planLabel })}
-                  latitude={form.latitude}
-                  longitude={form.longitude}
-                />
-              </div>
               <div>
                 <Label>District *</Label>
                 <Select value={form.district} onValueChange={(v) => setForm({ ...form, district: v })}>
@@ -222,69 +291,134 @@ export default function Apply() {
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-
-            <div className="grid sm:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="location">Location / Area</Label>
                 <Input id="location" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="e.g. Maseru Central" />
               </div>
+            </div>
+
+            {/* Conditional: Nearest Landmark (fibre only) */}
+            {showLandmark && (
               <div>
                 <Label htmlFor="landmark">Nearest Landmark</Label>
                 <Input id="landmark" value={form.nearestLandmark} onChange={(e) => setForm({ ...form, nearestLandmark: e.target.value })} placeholder="e.g. Near Pioneer Mall" />
               </div>
-            </div>
+            )}
 
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div>
-                <Label>Building Type</Label>
-                <Select value={form.buildingType} onValueChange={(v) => setForm({ ...form, buildingType: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {buildingTypes.map((b) => <SelectItem key={b.value} value={b.value}>{b.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="floors">Number of Floors</Label>
-                <Input id="floors" type="number" min="1" max="50" value={form.floors} onChange={(e) => setForm({ ...form, floors: e.target.value })} />
-              </div>
-            </div>
-
-            {/* GPS */}
-            <div>
-              <Label className="mb-2 block">GPS Coordinates</Label>
-              <div className="flex gap-3 items-end">
-                <div className="flex-1">
-                  <Input placeholder="Latitude" value={form.latitude} onChange={(e) => setForm({ ...form, latitude: e.target.value })} />
+            {/* Conditional: Building Type & Floors (fibre only) */}
+            {showBuildingType && (
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <Label>Building Type</Label>
+                  <Select value={form.buildingType} onValueChange={(v) => setForm({ ...form, buildingType: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {buildingTypes.map((b) => <SelectItem key={b.value} value={b.value}>{b.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
                 </div>
-                <div className="flex-1">
-                  <Input placeholder="Longitude" value={form.longitude} onChange={(e) => setForm({ ...form, longitude: e.target.value })} />
-                </div>
-                <Button type="button" variant="outline" size="icon" onClick={detectGPS} disabled={detecting}>
-                  {detecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />}
-                </Button>
+                {showFloors && (
+                  <div>
+                    <Label htmlFor="floors">Number of Floors</Label>
+                    <Input id="floors" type="number" min="1" max="50" value={form.floors} onChange={(e) => setForm({ ...form, floors: e.target.value })} />
+                  </div>
+                )}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Click the pin icon to auto-detect your location</p>
-            </div>
+            )}
 
-            {/* Section: Scheduling */}
-            <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-primary uppercase tracking-wider border-b border-border pb-2">Additional Details</h3>
-            </div>
+            {/* Conditional: GPS (fibre only) */}
+            {showGPS && (
+              <div>
+                <Label className="mb-2 block">GPS Coordinates</Label>
+                <div className="flex gap-3 items-end">
+                  <div className="flex-1">
+                    <Input placeholder="Latitude" value={form.latitude} onChange={(e) => setForm({ ...form, latitude: e.target.value })} />
+                  </div>
+                  <div className="flex-1">
+                    <Input placeholder="Longitude" value={form.longitude} onChange={(e) => setForm({ ...form, longitude: e.target.value })} />
+                  </div>
+                  <Button type="button" variant="outline" size="icon" onClick={detectGPS} disabled={detecting}>
+                    {detecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">Click the pin icon to auto-detect your location</p>
+              </div>
+            )}
 
-            <div>
-              <Label htmlFor="preferredDate">Preferred Installation Date</Label>
-              <Input id="preferredDate" type="date" value={form.preferredDate} onChange={(e) => setForm({ ...form, preferredDate: e.target.value })} />
-            </div>
+            {/* Conditional: FWA fields - Student/Teacher + Document Upload */}
+            {showApplicantRole && (
+              <div className="space-y-4 rounded-lg border border-border p-4 bg-muted/30">
+                <h3 className="text-sm font-semibold text-primary uppercase tracking-wider">Student / Teacher Verification</h3>
+                <div className="flex gap-6">
+                  <Label className={`flex items-center gap-2 cursor-pointer ${form.applicantRole === "student" ? "text-primary" : "text-muted-foreground"}`}>
+                    <Checkbox
+                      checked={form.applicantRole === "student"}
+                      onCheckedChange={(checked) => setForm({ ...form, applicantRole: checked ? "student" : "" })}
+                    />
+                    <span className="text-sm">Student</span>
+                  </Label>
+                  <Label className={`flex items-center gap-2 cursor-pointer ${form.applicantRole === "teacher" ? "text-primary" : "text-muted-foreground"}`}>
+                    <Checkbox
+                      checked={form.applicantRole === "teacher"}
+                      onCheckedChange={(checked) => setForm({ ...form, applicantRole: checked ? "teacher" : "" })}
+                    />
+                    <span className="text-sm">Teacher</span>
+                  </Label>
+                </div>
+              </div>
+            )}
 
-            <div>
-              <Label htmlFor="notes">Additional Notes</Label>
-              <Textarea id="notes" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Any special requirements, gate codes, access instructions, etc." rows={3} />
-            </div>
+            {showDocumentUpload && (
+              <div className="space-y-2">
+                <Label>Upload ID & School Affirmation Letter *</Label>
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border-2 border-dashed border-border rounded-lg p-6 text-center cursor-pointer hover:border-primary/40 transition-colors"
+                >
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    className="hidden"
+                    onChange={handleFileChange}
+                  />
+                  {documentFile ? (
+                    <div className="flex items-center justify-center gap-2 text-primary">
+                      <FileText className="w-5 h-5" />
+                      <span className="text-sm font-medium">{documentFile.name}</span>
+                    </div>
+                  ) : (
+                    <div className="text-muted-foreground">
+                      <Upload className="w-8 h-8 mx-auto mb-2" />
+                      <p className="text-sm">Click to upload ID and school affirmation letter</p>
+                      <p className="text-xs mt-1">PDF, JPG, or PNG (max 10MB)</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
-            <Button type="submit" size="lg" className="w-full" disabled={submitting}>
-              {submitting ? "Submitting..." : "Submit Application"}
+            {/* Conditional: Additional Details (hidden for FWA) */}
+            {showAdditionalDetails && (
+              <>
+                <div className="space-y-1">
+                  <h3 className="text-sm font-semibold text-primary uppercase tracking-wider border-b border-border pb-2">Additional Details</h3>
+                </div>
+
+                <div>
+                  <Label htmlFor="preferredDate">Preferred Installation Date</Label>
+                  <Input id="preferredDate" type="date" value={form.preferredDate} onChange={(e) => setForm({ ...form, preferredDate: e.target.value })} />
+                </div>
+
+                <div>
+                  <Label htmlFor="notes">Additional Notes</Label>
+                  <Textarea id="notes" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Any special requirements, gate codes, access instructions, etc." rows={3} />
+                </div>
+              </>
+            )}
+
+            <Button type="submit" size="lg" className="w-full" disabled={submitting || uploading}>
+              {submitting ? (uploading ? "Uploading document..." : "Submitting...") : "Submit Application"}
             </Button>
           </form>
         </motion.div>

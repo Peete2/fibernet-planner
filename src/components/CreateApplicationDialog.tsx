@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DISTRICTS } from "@/lib/mock-data";
-import ServicePlanSelector from "@/components/ServicePlanSelector";
+import ServicePlanSelector, { type ServiceCategoryId } from "@/components/ServicePlanSelector";
 
 interface Props {
   onCreated: () => void;
@@ -23,6 +23,7 @@ export default function CreateApplicationDialog({ onCreated }: Props) {
     phone: "",
     service: "",
     servicePlanId: "",
+    serviceCategory: "" as ServiceCategoryId | "",
     district: "",
     location: "",
   });
@@ -48,7 +49,7 @@ export default function CreateApplicationDialog({ onCreated }: Props) {
       toast.error(error.message);
     } else {
       toast.success("Application created");
-      setForm({ customer_name: "", email: "", phone: "", service: "", servicePlanId: "", district: "", location: "" });
+      setForm({ customer_name: "", email: "", phone: "", service: "", servicePlanId: "", serviceCategory: "", district: "", location: "" });
       setOpen(false);
       onCreated();
     }
@@ -85,7 +86,7 @@ export default function CreateApplicationDialog({ onCreated }: Props) {
             <Label>Service Plan *</Label>
             <ServicePlanSelector
               value={form.servicePlanId}
-              onChange={(planId, planLabel) => setForm({ ...form, servicePlanId: planId, service: planLabel })}
+              onChange={(planId, planLabel, categoryId) => setForm({ ...form, servicePlanId: planId, service: planLabel, serviceCategory: categoryId })}
             />
           </div>
           <div>
