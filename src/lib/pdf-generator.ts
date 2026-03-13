@@ -22,18 +22,53 @@ interface ApplicationData {
   notes?: string | null;
   latitude?: number | null;
   longitude?: number | null;
+  document_url?: string | null;
+  applicant_role?: string | null;
 }
 
+type ServiceCategory = "fmc" | "lte" | "fibre" | "fwa" | "unknown";
+
+function detectCategory(service: string): ServiceCategory {
+  const s = service.toLowerCase();
+  if (s.includes("wi-fi plus") || s.includes("fmc") || s.includes("bronze") || s.includes("silver") || s.includes("gold")) {
+    if (s.includes("fibre")) return "fibre";
+    return "fmc";
+  }
+  if (s.includes("fibre") || s.includes("gpon") || s.includes("top-up")) return "fibre";
+  if (s.includes("lte") && (s.includes("unlimited") || s.includes("always on") || s.includes("combo") || s.includes("fixed lte"))) return "lte";
+  if (s.includes("limited") || s.includes("school") || s.includes("hybrid") || s.includes("fwa")) return "fwa";
+  if (s.includes("lte")) return "lte";
+  return "unknown";
+}
+
+const categoryLabels: Record<ServiceCategory, string> = {
+  fmc: "Wi-Fi PLUS (FMC)",
+  lte: "Fixed LTE & LTE Unlimited",
+  fibre: "Fibre (GPON)",
+  fwa: "Limited Wi-Fi (FWA)",
+  unknown: "Service Application",
+};
+
+const categoryAccents: Record<ServiceCategory, [number, number, number]> = {
+  fmc: [59, 130, 246],    // blue
+  lte: [239, 68, 68],     // red
+  fibre: [16, 185, 129],  // green
+  fwa: [245, 158, 11],    // amber
+  unknown: [237, 137, 36],
+};
+
 export function generateApplicationPDF(app: ApplicationData) {
+  const category = detectCategory(app.service);
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
+  const accent = categoryAccents[category];
 
   // Brand header
-  doc.setFillColor(18, 36, 66); // primary navy
+  doc.setFillColor(18, 36, 66);
   doc.rect(0, 0, pageWidth, 45, "F");
 
-  // Accent bar
-  doc.setFillColor(237, 137, 36); // orange accent
+  // Category accent bar
+  doc.setFillColor(accent[0], accent[1], accent[2]);
   doc.rect(0, 45, pageWidth, 3, "F");
 
   // Company name
@@ -44,7 +79,7 @@ export function generateApplicationPDF(app: ApplicationData) {
 
   doc.setFontSize(11);
   doc.setFont("helvetica", "normal");
-  doc.text("Fiber Service Application", pageWidth / 2, 30, { align: "center" });
+  doc.text(`${categoryLabels[category]} Application`, pageWidth / 2, 30, { align: "center" });
 
   doc.setFontSize(9);
   doc.text(`Reference: ${app.ref_code}`, pageWidth / 2, 38, { align: "center" });
@@ -57,10 +92,13 @@ export function generateApplicationPDF(app: ApplicationData) {
     if (y > 260) { doc.addPage(); y = 20; }
     doc.setFillColor(240, 243, 248);
     doc.rect(14, y - 5, pageWidth - 28, 8, "F");
+    // Accent left border
+    doc.setFillColor(accent[0], accent[1], accent[2]);
+    doc.rect(14, y - 5, 2, 8, "F");
     doc.setFontSize(11);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(18, 36, 66);
-    doc.text(title, 16, y);
+    doc.text(title, 20, y);
     y += 10;
     doc.setFont("helvetica", "normal");
     doc.setTextColor(30, 41, 59);
@@ -77,13 +115,15 @@ export function generateApplicationPDF(app: ApplicationData) {
     y += 7;
   };
 
-  // Application Info
+  // ── APPLICATION DETAILS (all categories) ──
   addSection("APPLICATION DETAILS");
   addField("Reference", app.ref_code);
   addField("Status", app.status);
   addField("Date Submitted", new Date(app.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" }));
   addField("Account Type", app.account_type?.charAt(0).toUpperCase() + app.account_type?.slice(1));
+  addField("Service Plan", app.service);
 
+  // ── CUSTOMER INFO (all categories) ──
   y += 4;
   addSection("CUSTOMER INFORMATION");
   addField("Full Name", app.customer_name);
@@ -92,19 +132,52 @@ export function generateApplicationPDF(app: ApplicationData) {
   addField("Phone", app.phone);
   addField("Address", app.address);
 
-  y += 4;
-  addSection("SERVICE & LOCATION");
-  addField("Service Plan", app.service);
-  addField("District", app.district);
-  addField("Location / Area", app.location);
-  addField("Building Type", app.building_type?.charAt(0).toUpperCase() + (app.building_type?.slice(1) || ""));
-  addField("Floors", app.floors ? String(app.floors) : null);
-  addField("Nearest Landmark", app.nearest_landmark);
-  if (app.latitude && app.longitude) {
-    addField("GPS Coordinates", `${app.latitude}, ${app.longitude}`);
+  // ── FWA-specific: Applicant role ──
+  if (category === "fwa") {
+    if (app.applicant_role) {
+      addField("Applicant Role", app.applicant_role.charAt(0).toUpperCase() + app.applicant_role.slice(1));
+    }
+    if (app.document_url) {
+      addField("Uploaded Document", "Yes (attached)");
+    }
   }
-  addField("Preferred Date", app.preferred_date);
 
+  // ── LOCATION & SITE (category-specific) ──
+  y += 4;
+  if (category === "fibre") {
+    addSection("SERVICE & LOCATION");
+    addField("District", app.district);
+    addField("Location / Area", app.location);
+    addField("Building Type", app.building_type ? app.building_type.charAt(0).toUpperCase() + app.building_type.slice(1) : null);
+    addField("Floors", app.floors ? String(app.floors) : null);
+    addField("Nearest Landmark", app.nearest_landmark);
+    if (app.latitude && app.longitude) {
+      addField("GPS Coordinates", `${app.latitude}, ${app.longitude}`);
+    }
+    addField("Preferred Date", app.preferred_date);
+  } else if (category === "fmc" || category === "lte") {
+    addSection("SERVICE & LOCATION");
+    addField("District", app.district);
+    addField("Location / Area", app.location);
+    addField("Preferred Date", app.preferred_date);
+  } else if (category === "fwa") {
+    addSection("SERVICE & LOCATION");
+    addField("District", app.district);
+    addField("Location / Area", app.location);
+  } else {
+    addSection("SERVICE & LOCATION");
+    addField("District", app.district);
+    addField("Location / Area", app.location);
+    addField("Building Type", app.building_type ? app.building_type.charAt(0).toUpperCase() + app.building_type.slice(1) : null);
+    addField("Floors", app.floors ? String(app.floors) : null);
+    addField("Nearest Landmark", app.nearest_landmark);
+    if (app.latitude && app.longitude) {
+      addField("GPS Coordinates", `${app.latitude}, ${app.longitude}`);
+    }
+    addField("Preferred Date", app.preferred_date);
+  }
+
+  // ── ASSIGNMENT (if present) ──
   if (app.technician || app.scheduled_date) {
     y += 4;
     addSection("ASSIGNMENT");
@@ -112,6 +185,7 @@ export function generateApplicationPDF(app: ApplicationData) {
     addField("Scheduled Date", app.scheduled_date);
   }
 
+  // ── NOTES ──
   if (app.notes) {
     y += 4;
     addSection("ADDITIONAL NOTES");
@@ -127,8 +201,11 @@ export function generateApplicationPDF(app: ApplicationData) {
   doc.line(14, footerY - 5, pageWidth - 14, footerY - 5);
   doc.setFontSize(8);
   doc.setTextColor(148, 163, 184);
-  doc.text("Econet Telecom Lesotho — Fiber Service Application", 16, footerY);
+  doc.text(`Econet Telecom Lesotho — ${categoryLabels[category]}`, 16, footerY);
   doc.text(`Generated: ${new Date().toLocaleDateString("en-GB")}`, pageWidth - 16, footerY, { align: "right" });
 
-  doc.save(`ETL-Application-${app.ref_code}.pdf`);
+  doc.save(`ETL-${category.toUpperCase()}-${app.ref_code}.pdf`);
 }
+
+export { detectCategory, categoryLabels };
+export type { ServiceCategory };
