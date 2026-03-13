@@ -2,11 +2,12 @@ import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from "recharts";
 import { DISTRICTS } from "@/lib/mock-data";
-import { Users, FileText, CheckCircle, Wifi, Pencil, Trash2, X, Save, BarChart3, Route, Flame, CalendarDays, UserCheck, Plus, Search, ChevronLeft, ChevronRight, ScrollText, UsersRound, Download, Brain } from "lucide-react";
+import { Users, FileText, CheckCircle, Wifi, Pencil, Trash2, X, Save, BarChart3, Route, Flame, CalendarDays, UserCheck, Plus, Search, ChevronLeft, ChevronRight, ScrollText, UsersRound, Download, Brain, Radio, Cable, School, FileDown, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import LeafletMap from "@/components/LeafletMap";
@@ -18,7 +19,7 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import Footer from "@/components/Footer";
 import PageSkeleton from "@/components/PageSkeleton";
 import AISuggestionsPanel from "@/components/AISuggestionsPanel";
-import { generateApplicationPDF } from "@/lib/pdf-generator";
+import { generateApplicationPDF, detectCategory, categoryLabels, type ServiceCategory } from "@/lib/pdf-generator";
 
 const statusColors: Record<string, string> = {
   Submitted: "hsl(45 90% 50%)",
@@ -41,6 +42,8 @@ interface Application {
   technician: string | null;
   scheduled_date: string | null;
   created_at: string;
+  document_url: string | null;
+  applicant_role: string | null;
 }
 
 interface FiberNode {
@@ -63,6 +66,14 @@ interface Technician {
   full_name: string;
 }
 
+const SERVICE_TABS = [
+  { id: "all", label: "All", icon: FileText },
+  { id: "fmc", label: "Wi-Fi PLUS", icon: Wifi },
+  { id: "lte", label: "Fixed LTE", icon: Radio },
+  { id: "fibre", label: "Fibre (GPON)", icon: Cable },
+  { id: "fwa", label: "Limited Wi-Fi", icon: School },
+] as const;
+
 export default function Admin() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [fiberNodes, setFiberNodes] = useState<FiberNode[]>([]);
@@ -79,6 +90,7 @@ export default function Admin() {
   const [appSearch, setAppSearch] = useState("");
   const [appStatusFilter, setAppStatusFilter] = useState("all");
   const [appDistrictFilter, setAppDistrictFilter] = useState("all");
+  const [appServiceTab, setAppServiceTab] = useState("all");
   const [nodeSearch, setNodeSearch] = useState("");
   const [nodeStatusFilter, setNodeStatusFilter] = useState("all");
 
@@ -94,17 +106,15 @@ export default function Admin() {
   const fetchData = async () => {
     setLoading(true);
     const [appsRes, nodesRes, routesRes, techRes] = await Promise.all([
-      supabase.from("applications").select("id, ref_code, customer_name, service, district, location, status, technician, scheduled_date, created_at").order("created_at", { ascending: false }),
+      supabase.from("applications").select("id, ref_code, customer_name, service, district, location, status, technician, scheduled_date, created_at, document_url, applicant_role").order("created_at", { ascending: false }),
       supabase.from("fiber_nodes").select("id, name, latitude, longitude, capacity, status"),
       supabase.from("fiber_routes").select("id, route_name, created_at").order("created_at", { ascending: false }),
-      // Fetch technicians: profiles of users with technician role
       supabase.from("user_roles").select("user_id").eq("role", "technician"),
     ]);
     if (appsRes.data) setApplications(appsRes.data);
     if (nodesRes.data) setFiberNodes(nodesRes.data);
     if (routesRes.data) setFiberRoutes(routesRes.data);
 
-    // Fetch technician profiles
     if (techRes.data && techRes.data.length > 0) {
       const techIds = techRes.data.map((r) => r.user_id);
       const { data: profiles } = await supabase.from("profiles").select("user_id, full_name").in("user_id", techIds);
@@ -118,7 +128,6 @@ export default function Admin() {
 
   useEffect(() => { fetchData(); }, []);
 
-  // Realtime subscription for applications
   useEffect(() => {
     const channel = supabase
       .channel('admin-applications')
@@ -129,7 +138,7 @@ export default function Admin() {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  // Filtered applications
+  // Filtered applications with service category tab
   const filteredApps = useMemo(() => {
     return applications.filter((app) => {
       const matchesSearch = !appSearch || 
@@ -139,11 +148,21 @@ export default function Admin() {
         (app.technician || "").toLowerCase().includes(appSearch.toLowerCase());
       const matchesStatus = appStatusFilter === "all" || app.status === appStatusFilter;
       const matchesDistrict = appDistrictFilter === "all" || app.district === appDistrictFilter;
-      return matchesSearch && matchesStatus && matchesDistrict;
+      const matchesServiceTab = appServiceTab === "all" || detectCategory(app.service) === appServiceTab;
+      return matchesSearch && matchesStatus && matchesDistrict && matchesServiceTab;
     });
-  }, [applications, appSearch, appStatusFilter, appDistrictFilter]);
+  }, [applications, appSearch, appStatusFilter, appDistrictFilter, appServiceTab]);
 
-  // Filtered nodes
+  // Category counts
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = { all: applications.length, fmc: 0, lte: 0, fibre: 0, fwa: 0 };
+    applications.forEach((app) => {
+      const cat = detectCategory(app.service);
+      if (counts[cat] !== undefined) counts[cat]++;
+    });
+    return counts;
+  }, [applications]);
+
   const filteredNodes = useMemo(() => {
     return fiberNodes.filter((node) => {
       const matchesSearch = !nodeSearch || node.name.toLowerCase().includes(nodeSearch.toLowerCase());
@@ -152,17 +171,14 @@ export default function Admin() {
     });
   }, [fiberNodes, nodeSearch, nodeStatusFilter]);
 
-  // Reset pages when filters change
-  useEffect(() => { setAppPage(1); }, [appSearch, appStatusFilter, appDistrictFilter]);
+  useEffect(() => { setAppPage(1); }, [appSearch, appStatusFilter, appDistrictFilter, appServiceTab]);
   useEffect(() => { setNodePage(1); }, [nodeSearch, nodeStatusFilter]);
 
-  // Paginated data
   const appTotalPages = Math.max(1, Math.ceil(filteredApps.length / ITEMS_PER_PAGE));
   const paginatedApps = filteredApps.slice((appPage - 1) * ITEMS_PER_PAGE, appPage * ITEMS_PER_PAGE);
   const nodeTotalPages = Math.max(1, Math.ceil(filteredNodes.length / ITEMS_PER_PAGE));
   const paginatedNodes = filteredNodes.slice((nodePage - 1) * ITEMS_PER_PAGE, nodePage * ITEMS_PER_PAGE);
 
-  // Application CRUD
   const startEdit = (app: Application) => {
     setEditingApp(app.id);
     setEditForm({ status: app.status, technician: app.technician || "", scheduled_date: app.scheduled_date || "" });
@@ -187,7 +203,6 @@ export default function Admin() {
     else { toast.success("Application deleted"); fetchData(); }
   };
 
-  // Quick assign technician from assignment tab
   const handleAssign = async (appId: string) => {
     const tech = assignTech[appId];
     const date = assignDate[appId];
@@ -203,7 +218,6 @@ export default function Admin() {
     else { toast.success("Technician assigned"); fetchData(); }
   };
 
-  // Node CRUD
   const startNodeEdit = (node: FiberNode) => {
     setEditingNode(node.id);
     setNodeEditForm({ name: node.name, capacity: String(node.capacity), status: node.status });
@@ -231,6 +245,15 @@ export default function Admin() {
     else { toast.success("Route deleted"); fetchData(); setDrawMapKey((k) => k + 1); }
   };
 
+  const handleDownloadDoc = async (docUrl: string) => {
+    const { data } = await supabase.storage.from("fwa-documents").createSignedUrl(docUrl, 300);
+    if (data?.signedUrl) {
+      window.open(data.signedUrl, "_blank");
+    } else {
+      toast.error("Failed to generate download link");
+    }
+  };
+
   // Analytics data
   const districtData = DISTRICTS.map((d) => ({
     name: d.length > 8 ? d.slice(0, 8) + "." : d,
@@ -246,7 +269,6 @@ export default function Admin() {
     applications.reduce((acc, a) => { acc[a.service] = (acc[a.service] || 0) + 1; return acc; }, {} as Record<string, number>)
   ).map(([name, value]) => ({ name, value }));
 
-  // Monthly trend
   const monthlyData = (() => {
     const months: Record<string, number> = {};
     applications.forEach((a) => {
@@ -256,7 +278,6 @@ export default function Admin() {
     return Object.entries(months).map(([month, count]) => ({ month, count })).reverse();
   })();
 
-  // Pending applications for assignment
   const pendingApps = applications.filter((a) => ["Submitted", "Site Survey"].includes(a.status));
 
   const stats = [
@@ -330,7 +351,7 @@ export default function Admin() {
               </div>
             </TabsContent>
 
-            {/* ========== APPLICATIONS ========== */}
+            {/* ========== APPLICATIONS (sectioned by service) ========== */}
             <TabsContent value="applications">
               <div className="bg-card border border-border rounded-xl shadow-telecom overflow-hidden">
                 <div className="p-5 border-b border-border space-y-3">
@@ -338,6 +359,33 @@ export default function Admin() {
                     <h3 className="font-display font-semibold text-foreground">All Applications ({filteredApps.length}{filteredApps.length !== applications.length ? ` of ${applications.length}` : ""})</h3>
                     <CreateApplicationDialog onCreated={fetchData} />
                   </div>
+
+                  {/* Service category sub-tabs */}
+                  <div className="flex flex-wrap gap-1.5">
+                    {SERVICE_TABS.map((tab) => {
+                      const Icon = tab.icon;
+                      const count = categoryCounts[tab.id] || 0;
+                      const isActive = appServiceTab === tab.id;
+                      return (
+                        <button
+                          key={tab.id}
+                          onClick={() => setAppServiceTab(tab.id)}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
+                            isActive
+                              ? "border-primary bg-primary/10 text-primary"
+                              : "border-border bg-muted/30 text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                          }`}
+                        >
+                          <Icon className="w-3.5 h-3.5" />
+                          {tab.label}
+                          <Badge variant={isActive ? "default" : "outline"} className="text-[10px] px-1.5 py-0 h-4 min-w-[1.25rem] justify-center">
+                            {count}
+                          </Badge>
+                        </button>
+                      );
+                    })}
+                  </div>
+
                   <div className="flex flex-wrap gap-2">
                     <div className="relative flex-1 min-w-[200px]">
                       <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -375,72 +423,88 @@ export default function Admin() {
                       </tr>
                     </thead>
                     <tbody>
-                      {paginatedApps.map((app) => (
-                        <tr key={app.id} className="border-b border-border hover:bg-muted/30 transition-colors">
-                          <td className="px-4 py-3 font-mono text-xs text-foreground">{app.ref_code}</td>
-                          <td className="px-4 py-3 text-foreground">{app.customer_name}</td>
-                          <td className="px-4 py-3 text-muted-foreground">{app.service}</td>
-                          <td className="px-4 py-3 text-muted-foreground">{app.district}</td>
-                          <td className="px-4 py-3">
-                            {editingApp === app.id ? (
-                              <Select value={editForm.status} onValueChange={(v) => setEditForm({ ...editForm, status: v })}>
-                                <SelectTrigger className="h-8 text-xs w-40"><SelectValue /></SelectTrigger>
-                                <SelectContent>
-                                  {allStatuses.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                                </SelectContent>
-                              </Select>
-                            ) : (
-                              <span className="px-2 py-0.5 rounded-full text-xs font-medium" style={{ backgroundColor: statusColors[app.status] || "#888", color: "white" }}>
-                                {app.status}
-                              </span>
-                            )}
-                          </td>
-                          <td className="px-4 py-3">
-                            {editingApp === app.id ? (
-                              technicians.length > 0 ? (
-                                <Select value={editForm.technician} onValueChange={(v) => setEditForm({ ...editForm, technician: v })}>
-                                  <SelectTrigger className="h-8 text-xs w-36"><SelectValue placeholder="Select..." /></SelectTrigger>
+                      {paginatedApps.map((app) => {
+                        const appCategory = detectCategory(app.service);
+                        const isFwa = appCategory === "fwa";
+                        return (
+                          <tr key={app.id} className="border-b border-border hover:bg-muted/30 transition-colors">
+                            <td className="px-4 py-3 font-mono text-xs text-foreground">{app.ref_code}</td>
+                            <td className="px-4 py-3 text-foreground">
+                              <div>{app.customer_name}</div>
+                              {isFwa && app.applicant_role && (
+                                <Badge variant="outline" className="text-[10px] mt-0.5">{app.applicant_role}</Badge>
+                              )}
+                            </td>
+                            <td className="px-4 py-3 text-muted-foreground">
+                              <span className="text-xs">{app.service}</span>
+                            </td>
+                            <td className="px-4 py-3 text-muted-foreground">{app.district}</td>
+                            <td className="px-4 py-3">
+                              {editingApp === app.id ? (
+                                <Select value={editForm.status} onValueChange={(v) => setEditForm({ ...editForm, status: v })}>
+                                  <SelectTrigger className="h-8 text-xs w-40"><SelectValue /></SelectTrigger>
                                   <SelectContent>
-                                    {technicians.map((t) => <SelectItem key={t.user_id} value={t.full_name}>{t.full_name}</SelectItem>)}
+                                    {allStatuses.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                                   </SelectContent>
                                 </Select>
                               ) : (
-                                <Input value={editForm.technician} onChange={(e) => setEditForm({ ...editForm, technician: e.target.value })} placeholder="Name" className="h-8 text-xs w-36" />
-                              )
-                            ) : (
-                              <span className="text-muted-foreground">{app.technician || "—"}</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-3">
-                            {editingApp === app.id ? (
-                              <Input type="date" value={editForm.scheduled_date} onChange={(e) => setEditForm({ ...editForm, scheduled_date: e.target.value })} className="h-8 text-xs w-36" />
-                            ) : (
-                              <span className="text-muted-foreground">{app.scheduled_date || "—"}</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-muted-foreground">{new Date(app.created_at).toLocaleDateString()}</td>
-                          <td className="px-4 py-3">
-                            <div className="flex gap-1">
-                              {editingApp === app.id ? (
-                                <>
-                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => saveEdit(app.id)}><Save className="w-3.5 h-3.5 text-secondary" /></Button>
-                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingApp(null)}><X className="w-3.5 h-3.5" /></Button>
-                                </>
-                              ) : (
-                                <>
-                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => startEdit(app)}><Pencil className="w-3.5 h-3.5" /></Button>
-                                  <Button variant="ghost" size="icon" className="h-7 w-7" title="Download PDF" onClick={async () => {
-                                    const { data } = await supabase.from("applications").select("*").eq("id", app.id).single();
-                                    if (data) generateApplicationPDF(data as any);
-                                    else toast.error("Failed to load application data");
-                                  }}><Download className="w-3.5 h-3.5" /></Button>
-                                  <ConfirmDialog onConfirm={() => deleteApp(app.id)} title="Delete application?" description={`This will permanently delete application ${app.ref_code}.`} />
-                                </>
+                                <span className="px-2 py-0.5 rounded-full text-xs font-medium" style={{ backgroundColor: statusColors[app.status] || "#888", color: "white" }}>
+                                  {app.status}
+                                </span>
                               )}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
+                            </td>
+                            <td className="px-4 py-3">
+                              {editingApp === app.id ? (
+                                technicians.length > 0 ? (
+                                  <Select value={editForm.technician} onValueChange={(v) => setEditForm({ ...editForm, technician: v })}>
+                                    <SelectTrigger className="h-8 text-xs w-36"><SelectValue placeholder="Select..." /></SelectTrigger>
+                                    <SelectContent>
+                                      {technicians.map((t) => <SelectItem key={t.user_id} value={t.full_name}>{t.full_name}</SelectItem>)}
+                                    </SelectContent>
+                                  </Select>
+                                ) : (
+                                  <Input value={editForm.technician} onChange={(e) => setEditForm({ ...editForm, technician: e.target.value })} placeholder="Name" className="h-8 text-xs w-36" />
+                                )
+                              ) : (
+                                <span className="text-muted-foreground">{app.technician || "—"}</span>
+                              )}
+                            </td>
+                            <td className="px-4 py-3">
+                              {editingApp === app.id ? (
+                                <Input type="date" value={editForm.scheduled_date} onChange={(e) => setEditForm({ ...editForm, scheduled_date: e.target.value })} className="h-8 text-xs w-36" />
+                              ) : (
+                                <span className="text-muted-foreground">{app.scheduled_date || "—"}</span>
+                              )}
+                            </td>
+                            <td className="px-4 py-3 text-muted-foreground">{new Date(app.created_at).toLocaleDateString()}</td>
+                            <td className="px-4 py-3">
+                              <div className="flex gap-1">
+                                {editingApp === app.id ? (
+                                  <>
+                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => saveEdit(app.id)}><Save className="w-3.5 h-3.5 text-secondary" /></Button>
+                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingApp(null)}><X className="w-3.5 h-3.5" /></Button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => startEdit(app)}><Pencil className="w-3.5 h-3.5" /></Button>
+                                    <Button variant="ghost" size="icon" className="h-7 w-7" title="Download PDF" onClick={async () => {
+                                      const { data } = await supabase.from("applications").select("*").eq("id", app.id).single();
+                                      if (data) generateApplicationPDF(data as any);
+                                      else toast.error("Failed to load application data");
+                                    }}><FileDown className="w-3.5 h-3.5" /></Button>
+                                    {isFwa && app.document_url && (
+                                      <Button variant="ghost" size="icon" className="h-7 w-7" title="Download uploaded document" onClick={() => handleDownloadDoc(app.document_url!)}>
+                                        <ExternalLink className="w-3.5 h-3.5 text-accent" />
+                                      </Button>
+                                    )}
+                                    <ConfirmDialog onConfirm={() => deleteApp(app.id)} title="Delete application?" description={`This will permanently delete application ${app.ref_code}.`} />
+                                  </>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
                       {filteredApps.length === 0 && (
                         <tr><td colSpan={9} className="px-4 py-8 text-center text-muted-foreground">{applications.length === 0 ? "No applications yet." : "No applications match your filters."}</td></tr>
                       )}
