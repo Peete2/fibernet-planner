@@ -275,6 +275,9 @@ export default function Apply() {
                 onChange={(planId, planLabel, categoryId) =>
                   setForm({ ...form, servicePlanId: planId, service: planLabel, serviceCategory: categoryId })
                 }
+                onCategoryChange={(categoryId) =>
+                  setForm((f) => ({ ...f, serviceCategory: categoryId }))
+                }
                 latitude={form.latitude}
                 longitude={form.longitude}
                 accountType={form.accountType}

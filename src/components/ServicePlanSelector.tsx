@@ -222,7 +222,16 @@ interface Props {
   accountType?: string;
 }
 
-export default function ServicePlanSelector({ value, onChange, latitude, longitude, accountType }: Props) {
+interface Props {
+  value: string;
+  onChange: (planId: string, planLabel: string, categoryId: ServiceCategoryId) => void;
+  onCategoryChange?: (categoryId: ServiceCategoryId | "") => void;
+  latitude?: string;
+  longitude?: string;
+  accountType?: string;
+}
+
+export default function ServicePlanSelector({ value, onChange, onCategoryChange, latitude, longitude, accountType }: Props) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [fibreEligible, setFibreEligible] = useState<boolean | null>(null);
   const [fibreNode, setFibreNode] = useState<string | null>(null);
@@ -281,7 +290,7 @@ export default function ServicePlanSelector({ value, onChange, latitude, longitu
                 <button
                   key={cat.id}
                   type="button"
-                  onClick={() => setSelectedCategory(cat.id)}
+                  onClick={() => { setSelectedCategory(cat.id); onCategoryChange?.(cat.id as ServiceCategoryId); }}
                   className={`relative flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all text-left ${
                     isActive
                       ? "border-primary bg-primary/10"
@@ -310,7 +319,7 @@ export default function ServicePlanSelector({ value, onChange, latitude, longitu
           >
             <button
               type="button"
-              onClick={() => setSelectedCategory(null)}
+              onClick={() => { setSelectedCategory(null); onCategoryChange?.(""); }}
               className="flex items-center gap-1 text-sm text-primary hover:underline"
             >
               <ChevronLeft className="w-4 h-4" /> All categories
