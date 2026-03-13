@@ -222,7 +222,16 @@ interface Props {
   accountType?: string;
 }
 
-export default function ServicePlanSelector({ value, onChange, latitude, longitude, accountType }: Props) {
+interface Props {
+  value: string;
+  onChange: (planId: string, planLabel: string, categoryId: ServiceCategoryId) => void;
+  onCategoryChange?: (categoryId: ServiceCategoryId | "") => void;
+  latitude?: string;
+  longitude?: string;
+  accountType?: string;
+}
+
+export default function ServicePlanSelector({ value, onChange, onCategoryChange, latitude, longitude, accountType }: Props) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [fibreEligible, setFibreEligible] = useState<boolean | null>(null);
   const [fibreNode, setFibreNode] = useState<string | null>(null);
