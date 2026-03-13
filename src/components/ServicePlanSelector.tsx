@@ -319,7 +319,7 @@ export default function ServicePlanSelector({ value, onChange, onCategoryChange,
           >
             <button
               type="button"
-              onClick={() => setSelectedCategory(null)}
+              onClick={() => { setSelectedCategory(null); onCategoryChange?.(""); }}
               className="flex items-center gap-1 text-sm text-primary hover:underline"
             >
               <ChevronLeft className="w-4 h-4" /> All categories
