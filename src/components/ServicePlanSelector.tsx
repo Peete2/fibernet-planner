@@ -290,7 +290,7 @@ export default function ServicePlanSelector({ value, onChange, onCategoryChange,
                 <button
                   key={cat.id}
                   type="button"
-                  onClick={() => setSelectedCategory(cat.id)}
+                  onClick={() => { setSelectedCategory(cat.id); onCategoryChange?.(cat.id as ServiceCategoryId); }}
                   className={`relative flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all text-left ${
                     isActive
                       ? "border-primary bg-primary/10"
