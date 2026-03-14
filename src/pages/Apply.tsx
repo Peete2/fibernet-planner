@@ -377,31 +377,60 @@ export default function Apply() {
             )}
 
             {showDocumentUpload && (
-              <div className="space-y-2">
-                <Label>Upload ID & School Affirmation Letter *</Label>
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-border rounded-lg p-6 text-center cursor-pointer hover:border-primary/40 transition-colors"
-                >
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    className="hidden"
-                    onChange={handleFileChange}
-                  />
-                  {documentFile ? (
-                    <div className="flex items-center justify-center gap-2 text-primary">
-                      <FileText className="w-5 h-5" />
-                      <span className="text-sm font-medium">{documentFile.name}</span>
-                    </div>
-                  ) : (
-                    <div className="text-muted-foreground">
-                      <Upload className="w-8 h-8 mx-auto mb-2" />
-                      <p className="text-sm">Click to upload ID and school affirmation letter</p>
-                      <p className="text-xs mt-1">PDF, JPG, or PNG (max 10MB)</p>
-                    </div>
-                  )}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Upload National ID *</Label>
+                  <div
+                    onClick={() => idInputRef.current?.click()}
+                    className="border-2 border-dashed border-border rounded-lg p-4 text-center cursor-pointer hover:border-primary/40 transition-colors"
+                  >
+                    <input
+                      ref={idInputRef}
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      className="hidden"
+                      onChange={(e) => handleFileSelect(e.target.files?.[0], setIdFile)}
+                    />
+                    {idFile ? (
+                      <div className="flex items-center justify-center gap-2 text-primary">
+                        <FileText className="w-5 h-5" />
+                        <span className="text-sm font-medium">{idFile.name}</span>
+                      </div>
+                    ) : (
+                      <div className="text-muted-foreground">
+                        <Upload className="w-6 h-6 mx-auto mb-1" />
+                        <p className="text-sm">Click to upload your National ID</p>
+                        <p className="text-xs mt-1">PDF, JPG, or PNG (max 10MB)</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Upload School Affirmation Letter *</Label>
+                  <div
+                    onClick={() => letterInputRef.current?.click()}
+                    className="border-2 border-dashed border-border rounded-lg p-4 text-center cursor-pointer hover:border-primary/40 transition-colors"
+                  >
+                    <input
+                      ref={letterInputRef}
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      className="hidden"
+                      onChange={(e) => handleFileSelect(e.target.files?.[0], setLetterFile)}
+                    />
+                    {letterFile ? (
+                      <div className="flex items-center justify-center gap-2 text-primary">
+                        <FileText className="w-5 h-5" />
+                        <span className="text-sm font-medium">{letterFile.name}</span>
+                      </div>
+                    ) : (
+                      <div className="text-muted-foreground">
+                        <Upload className="w-6 h-6 mx-auto mb-1" />
+                        <p className="text-sm">Click to upload school affirmation letter</p>
+                        <p className="text-xs mt-1">PDF, JPG, or PNG (max 10MB)</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
