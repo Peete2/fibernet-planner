@@ -59,7 +59,10 @@ export default function Apply() {
   const [detecting, setDetecting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submittedRef, setSubmittedRef] = useState<string | null>(null);
-  const [documentFile, setDocumentFile] = useState<File | null>(null);
+  const [idFile, setIdFile] = useState<File | null>(null);
+  const [letterFile, setLetterFile] = useState<File | null>(null);
+  const idInputRef = useRef<HTMLInputElement>(null);
+  const letterInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
   // Derived visibility flags based on selected service category
