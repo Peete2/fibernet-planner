@@ -107,7 +107,7 @@ export default function Admin() {
   const fetchData = async () => {
     setLoading(true);
     const [appsRes, nodesRes, routesRes, techRes] = await Promise.all([
-      supabase.from("applications").select("id, ref_code, customer_name, service, district, location, status, technician, scheduled_date, created_at, document_url, applicant_role").order("created_at", { ascending: false }),
+      supabase.from("applications").select("id, ref_code, customer_name, service, district, location, status, technician, scheduled_date, created_at, document_url, affirmation_letter_url, applicant_role").order("created_at", { ascending: false }),
       supabase.from("fiber_nodes").select("id, name, latitude, longitude, capacity, status"),
       supabase.from("fiber_routes").select("id, route_name, created_at").order("created_at", { ascending: false }),
       supabase.from("user_roles").select("user_id").eq("role", "technician"),
