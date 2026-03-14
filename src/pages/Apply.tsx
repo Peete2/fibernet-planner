@@ -151,7 +151,8 @@ export default function Apply() {
           longitude: showGPS && form.longitude ? parseFloat(form.longitude) : null,
           user_id: user?.id || null,
           account_type: form.accountType,
-          document_url: docUrl,
+          document_url: idDocUrl,
+          affirmation_letter_url: letterDocUrl,
           applicant_role: form.applicantRole || null,
         } as any)
         .select("ref_code")
