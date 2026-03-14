@@ -43,6 +43,7 @@ interface Application {
   scheduled_date: string | null;
   created_at: string;
   document_url: string | null;
+  affirmation_letter_url: string | null;
   applicant_role: string | null;
 }
 
