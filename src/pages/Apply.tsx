@@ -121,11 +121,13 @@ export default function Apply() {
 
     setSubmitting(true);
     try {
-      let docUrl: string | null = null;
-      if (cat === "fwa" && documentFile) {
+      let idDocUrl: string | null = null;
+      let letterDocUrl: string | null = null;
+      if (cat === "fwa") {
         setUploading(true);
         const uploaderId = user?.id || "anonymous";
-        docUrl = await uploadDocument(uploaderId);
+        if (idFile) idDocUrl = await uploadFile(idFile, uploaderId, "id");
+        if (letterFile) letterDocUrl = await uploadFile(letterFile, uploaderId, "letter");
         setUploading(false);
       }
 
