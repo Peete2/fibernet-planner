@@ -494,8 +494,13 @@ export default function Admin() {
                                       else toast.error("Failed to load application data");
                                     }}><FileDown className="w-3.5 h-3.5" /></Button>
                                     {isFwa && app.document_url && (
-                                      <Button variant="ghost" size="icon" className="h-7 w-7" title="Download uploaded document" onClick={() => handleDownloadDoc(app.document_url!)}>
+                                      <Button variant="ghost" size="icon" className="h-7 w-7" title="Download ID document" onClick={() => handleDownloadDoc(app.document_url!)}>
                                         <ExternalLink className="w-3.5 h-3.5 text-accent" />
+                                      </Button>
+                                    )}
+                                    {isFwa && app.affirmation_letter_url && (
+                                      <Button variant="ghost" size="icon" className="h-7 w-7" title="Download affirmation letter" onClick={() => handleDownloadDoc(app.affirmation_letter_url!)}>
+                                        <School className="w-3.5 h-3.5 text-secondary" />
                                       </Button>
                                     )}
                                     <ConfirmDialog onConfirm={() => deleteApp(app.id)} title="Delete application?" description={`This will permanently delete application ${app.ref_code}.`} />
