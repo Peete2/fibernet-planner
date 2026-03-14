@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           account_type: string
           address: string | null
+          affirmation_letter_url: string | null
           applicant_role: string | null
           building_type: string | null
           created_at: string
@@ -46,6 +47,7 @@ export type Database = {
         Insert: {
           account_type?: string
           address?: string | null
+          affirmation_letter_url?: string | null
           applicant_role?: string | null
           building_type?: string | null
           created_at?: string
@@ -74,6 +76,7 @@ export type Database = {
         Update: {
           account_type?: string
           address?: string | null
+          affirmation_letter_url?: string | null
           applicant_role?: string | null
           building_type?: string | null
           created_at?: string
