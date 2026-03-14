@@ -88,23 +88,21 @@ export default function Apply() {
     );
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleFileSelect = (file: File | undefined, setter: (f: File | null) => void) => {
     if (!file) return;
     if (file.size > 10 * 1024 * 1024) {
       toast.error("File must be under 10MB");
       return;
     }
-    setDocumentFile(file);
+    setter(file);
   };
 
-  const uploadDocument = async (userId: string): Promise<string | null> => {
-    if (!documentFile) return null;
-    const ext = documentFile.name.split(".").pop();
-    const path = `${userId}/${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from("fwa-documents").upload(path, documentFile);
+  const uploadFile = async (file: File, userId: string, prefix: string): Promise<string | null> => {
+    const ext = file.name.split(".").pop();
+    const path = `${userId}/${prefix}-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("fwa-documents").upload(path, file);
     if (error) {
-      toast.error("Document upload failed: " + error.message);
+      toast.error(`Upload failed (${prefix}): ` + error.message);
       return null;
     }
     return path;
