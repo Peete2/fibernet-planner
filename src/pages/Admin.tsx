@@ -43,6 +43,7 @@ interface Application {
   scheduled_date: string | null;
   created_at: string;
   document_url: string | null;
+  affirmation_letter_url: string | null;
   applicant_role: string | null;
 }
 
@@ -106,7 +107,7 @@ export default function Admin() {
   const fetchData = async () => {
     setLoading(true);
     const [appsRes, nodesRes, routesRes, techRes] = await Promise.all([
-      supabase.from("applications").select("id, ref_code, customer_name, service, district, location, status, technician, scheduled_date, created_at, document_url, applicant_role").order("created_at", { ascending: false }),
+      supabase.from("applications").select("id, ref_code, customer_name, service, district, location, status, technician, scheduled_date, created_at, document_url, affirmation_letter_url, applicant_role").order("created_at", { ascending: false }),
       supabase.from("fiber_nodes").select("id, name, latitude, longitude, capacity, status"),
       supabase.from("fiber_routes").select("id, route_name, created_at").order("created_at", { ascending: false }),
       supabase.from("user_roles").select("user_id").eq("role", "technician"),
@@ -493,8 +494,13 @@ export default function Admin() {
                                       else toast.error("Failed to load application data");
                                     }}><FileDown className="w-3.5 h-3.5" /></Button>
                                     {isFwa && app.document_url && (
-                                      <Button variant="ghost" size="icon" className="h-7 w-7" title="Download uploaded document" onClick={() => handleDownloadDoc(app.document_url!)}>
+                                      <Button variant="ghost" size="icon" className="h-7 w-7" title="Download ID document" onClick={() => handleDownloadDoc(app.document_url!)}>
                                         <ExternalLink className="w-3.5 h-3.5 text-accent" />
+                                      </Button>
+                                    )}
+                                    {isFwa && app.affirmation_letter_url && (
+                                      <Button variant="ghost" size="icon" className="h-7 w-7" title="Download affirmation letter" onClick={() => handleDownloadDoc(app.affirmation_letter_url!)}>
+                                        <School className="w-3.5 h-3.5 text-secondary" />
                                       </Button>
                                     )}
                                     <ConfirmDialog onConfirm={() => deleteApp(app.id)} title="Delete application?" description={`This will permanently delete application ${app.ref_code}.`} />

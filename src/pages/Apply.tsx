@@ -34,7 +34,7 @@ const accountTypes = [
 export default function Apply() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   const [form, setForm] = useState({
     accountType: "individual",
     name: profile?.full_name || "",
@@ -59,7 +59,10 @@ export default function Apply() {
   const [detecting, setDetecting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submittedRef, setSubmittedRef] = useState<string | null>(null);
-  const [documentFile, setDocumentFile] = useState<File | null>(null);
+  const [idFile, setIdFile] = useState<File | null>(null);
+  const [letterFile, setLetterFile] = useState<File | null>(null);
+  const idInputRef = useRef<HTMLInputElement>(null);
+  const letterInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
   // Derived visibility flags based on selected service category
@@ -85,23 +88,21 @@ export default function Apply() {
     );
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleFileSelect = (file: File | undefined, setter: (f: File | null) => void) => {
     if (!file) return;
     if (file.size > 10 * 1024 * 1024) {
       toast.error("File must be under 10MB");
       return;
     }
-    setDocumentFile(file);
+    setter(file);
   };
 
-  const uploadDocument = async (userId: string): Promise<string | null> => {
-    if (!documentFile) return null;
-    const ext = documentFile.name.split(".").pop();
-    const path = `${userId}/${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from("fwa-documents").upload(path, documentFile);
+  const uploadFile = async (file: File, userId: string, prefix: string): Promise<string | null> => {
+    const ext = file.name.split(".").pop();
+    const path = `${userId}/${prefix}-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("fwa-documents").upload(path, file);
     if (error) {
-      toast.error("Document upload failed: " + error.message);
+      toast.error(`Upload failed (${prefix}): ` + error.message);
       return null;
     }
     return path;
@@ -120,11 +121,13 @@ export default function Apply() {
 
     setSubmitting(true);
     try {
-      let docUrl: string | null = null;
-      if (cat === "fwa" && documentFile) {
+      let idDocUrl: string | null = null;
+      let letterDocUrl: string | null = null;
+      if (cat === "fwa") {
         setUploading(true);
         const uploaderId = user?.id || "anonymous";
-        docUrl = await uploadDocument(uploaderId);
+        if (idFile) idDocUrl = await uploadFile(idFile, uploaderId, "id");
+        if (letterFile) letterDocUrl = await uploadFile(letterFile, uploaderId, "letter");
         setUploading(false);
       }
 
@@ -148,7 +151,8 @@ export default function Apply() {
           longitude: showGPS && form.longitude ? parseFloat(form.longitude) : null,
           user_id: user?.id || null,
           account_type: form.accountType,
-          document_url: docUrl,
+          document_url: idDocUrl,
+          affirmation_letter_url: letterDocUrl,
           applicant_role: form.applicantRole || null,
         } as any)
         .select("ref_code")
@@ -177,7 +181,8 @@ export default function Apply() {
           <div className="flex gap-3 justify-center mt-6">
             <Button onClick={() => {
               setSubmittedRef(null);
-              setDocumentFile(null);
+              setIdFile(null);
+              setLetterFile(null);
               setForm({ accountType: "individual", name: "", email: "", phone: "", nationalId: "", address: "", service: "", servicePlanId: "", serviceCategory: "", district: "", location: "", buildingType: "residential", floors: "1", nearestLandmark: "", preferredDate: "", notes: "", latitude: "", longitude: "", applicantRole: "" });
             }}>
               Submit Another
@@ -372,31 +377,60 @@ export default function Apply() {
             )}
 
             {showDocumentUpload && (
-              <div className="space-y-2">
-                <Label>Upload ID & School Affirmation Letter *</Label>
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-border rounded-lg p-6 text-center cursor-pointer hover:border-primary/40 transition-colors"
-                >
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    className="hidden"
-                    onChange={handleFileChange}
-                  />
-                  {documentFile ? (
-                    <div className="flex items-center justify-center gap-2 text-primary">
-                      <FileText className="w-5 h-5" />
-                      <span className="text-sm font-medium">{documentFile.name}</span>
-                    </div>
-                  ) : (
-                    <div className="text-muted-foreground">
-                      <Upload className="w-8 h-8 mx-auto mb-2" />
-                      <p className="text-sm">Click to upload ID and school affirmation letter</p>
-                      <p className="text-xs mt-1">PDF, JPG, or PNG (max 10MB)</p>
-                    </div>
-                  )}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Upload National ID *</Label>
+                  <div
+                    onClick={() => idInputRef.current?.click()}
+                    className="border-2 border-dashed border-border rounded-lg p-4 text-center cursor-pointer hover:border-primary/40 transition-colors"
+                  >
+                    <input
+                      ref={idInputRef}
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      className="hidden"
+                      onChange={(e) => handleFileSelect(e.target.files?.[0], setIdFile)}
+                    />
+                    {idFile ? (
+                      <div className="flex items-center justify-center gap-2 text-primary">
+                        <FileText className="w-5 h-5" />
+                        <span className="text-sm font-medium">{idFile.name}</span>
+                      </div>
+                    ) : (
+                      <div className="text-muted-foreground">
+                        <Upload className="w-6 h-6 mx-auto mb-1" />
+                        <p className="text-sm">Click to upload your National ID</p>
+                        <p className="text-xs mt-1">PDF, JPG, or PNG (max 10MB)</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Upload School Affirmation Letter *</Label>
+                  <div
+                    onClick={() => letterInputRef.current?.click()}
+                    className="border-2 border-dashed border-border rounded-lg p-4 text-center cursor-pointer hover:border-primary/40 transition-colors"
+                  >
+                    <input
+                      ref={letterInputRef}
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      className="hidden"
+                      onChange={(e) => handleFileSelect(e.target.files?.[0], setLetterFile)}
+                    />
+                    {letterFile ? (
+                      <div className="flex items-center justify-center gap-2 text-primary">
+                        <FileText className="w-5 h-5" />
+                        <span className="text-sm font-medium">{letterFile.name}</span>
+                      </div>
+                    ) : (
+                      <div className="text-muted-foreground">
+                        <Upload className="w-6 h-6 mx-auto mb-1" />
+                        <p className="text-sm">Click to upload school affirmation letter</p>
+                        <p className="text-xs mt-1">PDF, JPG, or PNG (max 10MB)</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
