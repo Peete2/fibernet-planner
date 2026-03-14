@@ -34,7 +34,7 @@ const accountTypes = [
 export default function Apply() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   const [form, setForm] = useState({
     accountType: "individual",
     name: profile?.full_name || "",
