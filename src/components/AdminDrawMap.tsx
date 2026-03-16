@@ -33,9 +33,21 @@ export default function AdminDrawMap({ onRouteCreated, onNodeCreated }: AdminDra
     const map = L.map(mapRef.current).setView(LESOTHO_CENTER, 8);
     mapInstance.current = map;
 
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+    const streetLayer = L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
-    }).addTo(map);
+    });
+
+    const satelliteLayer = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+      attribution: '&copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics',
+    });
+
+    streetLayer.addTo(map);
+
+    L.control.layers(
+      { "Street Map": streetLayer, "Satellite": satelliteLayer },
+      {},
+      { position: "topright" }
+    ).addTo(map);
 
     // Load existing routes and nodes
     const loadExisting = async () => {

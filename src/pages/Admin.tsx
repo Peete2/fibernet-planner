@@ -247,9 +247,14 @@ export default function Admin() {
   };
 
   const handleDownloadDoc = async (docUrl: string) => {
-    const { data } = await supabase.storage.from("fwa-documents").createSignedUrl(docUrl, 300);
+    const { data } = await supabase.storage.from("fwa-documents").createSignedUrl(docUrl, 300, { download: true });
     if (data?.signedUrl) {
-      window.open(data.signedUrl, "_blank");
+      const a = document.createElement("a");
+      a.href = data.signedUrl;
+      a.download = docUrl.split("/").pop() || "document";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     } else {
       toast.error("Failed to generate download link");
     }
