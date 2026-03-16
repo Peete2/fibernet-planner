@@ -185,7 +185,7 @@ const PLAN_CATEGORIES: PlanCategory[] = [
 
 // ── Fibre eligibility check ────────────────────────────────
 
-const MAX_FIBRE_DISTANCE_KM = 30;
+const MAX_FIBRE_DISTANCE_KM = 4;
 
 async function checkFibreEligibility(lat: number, lng: number): Promise<{ eligible: boolean; nodeName?: string; suggestedCategories?: string[] }> {
   const { data: nodes } = await supabase.from("fiber_nodes").select("*");
