@@ -39,12 +39,13 @@ export default function CreateApplicationDialog({ onCreated }: Props) {
     setSaving(true);
     const { error } = await supabase.from("applications").insert({
       customer_name: form.customer_name.trim(),
+      title: form.title || null,
       email: form.email.trim() || null,
       phone: form.phone.trim() || null,
       service: form.service,
       district: form.district,
       location: form.location.trim() || null,
-    });
+    } as any);
 
     if (error) {
       toast.error(error.message);
