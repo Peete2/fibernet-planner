@@ -783,6 +783,11 @@ export default function Admin() {
                           </td>
                           <td className="px-4 py-3">
                             {editingNode === node.id ? (
+                              <Input value={nodeEditForm.radius_km} onChange={(e) => setNodeEditForm({ ...nodeEditForm, radius_km: e.target.value })} className="h-8 text-xs w-20" type="number" step="0.5" min="0.5" />
+                            ) : <span className="text-muted-foreground">{node.radius_km ?? 4} km</span>}
+                          </td>
+                          <td className="px-4 py-3">
+                            {editingNode === node.id ? (
                               <Select value={nodeEditForm.status} onValueChange={(v) => setNodeEditForm({ ...nodeEditForm, status: v })}>
                                 <SelectTrigger className="h-8 text-xs w-32"><SelectValue /></SelectTrigger>
                                 <SelectContent>
