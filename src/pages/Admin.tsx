@@ -84,7 +84,7 @@ export default function Admin() {
   const [editingApp, setEditingApp] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<{ status: string; technician: string; scheduled_date: string }>({ status: "", technician: "", scheduled_date: "" });
   const [editingNode, setEditingNode] = useState<string | null>(null);
-  const [nodeEditForm, setNodeEditForm] = useState<{ name: string; capacity: string; status: string }>({ name: "", capacity: "", status: "" });
+  const [nodeEditForm, setNodeEditForm] = useState<{ name: string; capacity: string; status: string; radius_km: string }>({ name: "", capacity: "", status: "", radius_km: "4" });
   const [loading, setLoading] = useState(true);
   const [drawMapKey, setDrawMapKey] = useState(0);
 
