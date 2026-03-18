@@ -5,6 +5,7 @@ interface ApplicationData {
   customer_name: string;
   email?: string | null;
   phone?: string | null;
+  title?: string | null;
   service: string;
   district: string;
   location?: string | null;
@@ -126,7 +127,7 @@ export function generateApplicationPDF(app: ApplicationData) {
   // ── CUSTOMER INFO (all categories) ──
   y += 4;
   addSection("CUSTOMER INFORMATION");
-  addField("Full Name", app.customer_name);
+  addField("Full Name", app.title ? `${app.title} ${app.customer_name}` : app.customer_name);
   addField("National ID", app.national_id);
   addField("Email", app.email);
   addField("Phone", app.phone);

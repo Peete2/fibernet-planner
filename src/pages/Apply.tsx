@@ -37,6 +37,7 @@ export default function Apply() {
   
   const [form, setForm] = useState({
     accountType: "individual",
+    title: "",
     name: profile?.full_name || "",
     email: profile?.email || user?.email || "",
     phone: profile?.phone || "",
@@ -135,6 +136,7 @@ export default function Apply() {
         .from("applications")
         .insert({
           customer_name: form.name.trim(),
+          title: form.accountType === "individual" && form.title ? form.title : null,
           email: form.email.trim() || null,
           phone: form.phone.trim() || null,
           national_id: form.nationalId.trim() || null,
@@ -183,7 +185,7 @@ export default function Apply() {
               setSubmittedRef(null);
               setIdFile(null);
               setLetterFile(null);
-              setForm({ accountType: "individual", name: "", email: "", phone: "", nationalId: "", address: "", service: "", servicePlanId: "", serviceCategory: "", district: "", location: "", buildingType: "residential", floors: "1", nearestLandmark: "", preferredDate: "", notes: "", latitude: "", longitude: "", applicantRole: "" });
+              setForm({ accountType: "individual", title: "", name: "", email: "", phone: "", nationalId: "", address: "", service: "", servicePlanId: "", serviceCategory: "", district: "", location: "", buildingType: "residential", floors: "1", nearestLandmark: "", preferredDate: "", notes: "", latitude: "", longitude: "", applicantRole: "" });
             }}>
               Submit Another
             </Button>
@@ -239,6 +241,17 @@ export default function Apply() {
             </div>
 
             <div className="grid sm:grid-cols-2 gap-4">
+              {form.accountType === "individual" && (
+                <div>
+                  <Label>Title</Label>
+                  <Select value={form.title} onValueChange={(v) => setForm({ ...form, title: v })}>
+                    <SelectTrigger><SelectValue placeholder="Select title" /></SelectTrigger>
+                    <SelectContent>
+                      {["Mr", "Mrs", "Miss", "Prof", "Doc"].map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div>
                 <Label htmlFor="name">
                   {form.accountType === "individual" ? "Full Name" : form.accountType === "school" ? "School Name" : "Business Name"} *

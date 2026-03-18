@@ -19,6 +19,7 @@ export default function CreateApplicationDialog({ onCreated }: Props) {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     customer_name: "",
+    title: "",
     email: "",
     phone: "",
     service: "",
@@ -38,18 +39,19 @@ export default function CreateApplicationDialog({ onCreated }: Props) {
     setSaving(true);
     const { error } = await supabase.from("applications").insert({
       customer_name: form.customer_name.trim(),
+      title: form.title || null,
       email: form.email.trim() || null,
       phone: form.phone.trim() || null,
       service: form.service,
       district: form.district,
       location: form.location.trim() || null,
-    });
+    } as any);
 
     if (error) {
       toast.error(error.message);
     } else {
       toast.success("Application created");
-      setForm({ customer_name: "", email: "", phone: "", service: "", servicePlanId: "", serviceCategory: "", district: "", location: "" });
+      setForm({ customer_name: "", title: "", email: "", phone: "", service: "", servicePlanId: "", serviceCategory: "", district: "", location: "" });
       setOpen(false);
       onCreated();
     }
@@ -68,9 +70,20 @@ export default function CreateApplicationDialog({ onCreated }: Props) {
           <DialogTitle>Create Application</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label>Customer Name *</Label>
-            <Input value={form.customer_name} onChange={(e) => setForm({ ...form, customer_name: e.target.value })} placeholder="Full name" />
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <Label>Title</Label>
+              <Select value={form.title} onValueChange={(v) => setForm({ ...form, title: v })}>
+                <SelectTrigger><SelectValue placeholder="Title" /></SelectTrigger>
+                <SelectContent>
+                  {["Mr", "Mrs", "Miss", "Prof", "Doc"].map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="col-span-2">
+              <Label>Customer Name *</Label>
+              <Input value={form.customer_name} onChange={(e) => setForm({ ...form, customer_name: e.target.value })} placeholder="Full name" />
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>

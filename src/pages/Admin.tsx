@@ -35,6 +35,7 @@ interface Application {
   id: string;
   ref_code: string;
   customer_name: string;
+  title: string | null;
   service: string;
   district: string;
   location: string | null;
@@ -54,6 +55,7 @@ interface FiberNode {
   longitude: number;
   capacity: number;
   status: string;
+  radius_km: number;
 }
 
 interface FiberRoute {
@@ -83,7 +85,7 @@ export default function Admin() {
   const [editingApp, setEditingApp] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<{ status: string; technician: string; scheduled_date: string }>({ status: "", technician: "", scheduled_date: "" });
   const [editingNode, setEditingNode] = useState<string | null>(null);
-  const [nodeEditForm, setNodeEditForm] = useState<{ name: string; capacity: string; status: string }>({ name: "", capacity: "", status: "" });
+  const [nodeEditForm, setNodeEditForm] = useState<{ name: string; capacity: string; status: string; radius_km: string }>({ name: "", capacity: "", status: "", radius_km: "4" });
   const [loading, setLoading] = useState(true);
   const [drawMapKey, setDrawMapKey] = useState(0);
 
@@ -107,8 +109,8 @@ export default function Admin() {
   const fetchData = async () => {
     setLoading(true);
     const [appsRes, nodesRes, routesRes, techRes] = await Promise.all([
-      supabase.from("applications").select("id, ref_code, customer_name, service, district, location, status, technician, scheduled_date, created_at, document_url, affirmation_letter_url, applicant_role").order("created_at", { ascending: false }),
-      supabase.from("fiber_nodes").select("id, name, latitude, longitude, capacity, status"),
+      supabase.from("applications").select("id, ref_code, customer_name, title, service, district, location, status, technician, scheduled_date, created_at, document_url, affirmation_letter_url, applicant_role").order("created_at", { ascending: false }),
+      supabase.from("fiber_nodes").select("id, name, latitude, longitude, capacity, status, radius_km"),
       supabase.from("fiber_routes").select("id, route_name, created_at").order("created_at", { ascending: false }),
       supabase.from("user_roles").select("user_id").eq("role", "technician"),
     ]);
@@ -221,7 +223,7 @@ export default function Admin() {
 
   const startNodeEdit = (node: FiberNode) => {
     setEditingNode(node.id);
-    setNodeEditForm({ name: node.name, capacity: String(node.capacity), status: node.status });
+    setNodeEditForm({ name: node.name, capacity: String(node.capacity), status: node.status, radius_km: String(node.radius_km ?? 4) });
   };
 
   const saveNodeEdit = async (id: string) => {
@@ -229,7 +231,8 @@ export default function Admin() {
       name: nodeEditForm.name,
       capacity: parseInt(nodeEditForm.capacity, 10),
       status: nodeEditForm.status,
-    }).eq("id", id);
+      radius_km: parseFloat(nodeEditForm.radius_km) || 4,
+    } as any).eq("id", id);
     if (error) toast.error(error.message);
     else { toast.success("Node updated"); setEditingNode(null); fetchData(); }
   };
@@ -436,7 +439,7 @@ export default function Admin() {
                           <tr key={app.id} className="border-b border-border hover:bg-muted/30 transition-colors">
                             <td className="px-4 py-3 font-mono text-xs text-foreground">{app.ref_code}</td>
                             <td className="px-4 py-3 text-foreground">
-                              <div>{app.customer_name}</div>
+                              <div>{app.title ? `${app.title} ` : ""}{app.customer_name}</div>
                               {isFwa && app.applicant_role && (
                                 <Badge variant="outline" className="text-[10px] mt-0.5">{app.applicant_role}</Badge>
                               )}
@@ -757,8 +760,9 @@ export default function Admin() {
                       <tr className="border-b border-border bg-muted/50">
                         <th className="px-4 py-3 text-left font-medium text-muted-foreground">Name</th>
                         <th className="px-4 py-3 text-left font-medium text-muted-foreground">Lat / Lng</th>
-                        <th className="px-4 py-3 text-left font-medium text-muted-foreground">Capacity</th>
-                        <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
+                         <th className="px-4 py-3 text-left font-medium text-muted-foreground">Capacity</th>
+                         <th className="px-4 py-3 text-left font-medium text-muted-foreground">Radius (km)</th>
+                         <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
                         <th className="px-4 py-3 text-left font-medium text-muted-foreground">Actions</th>
                       </tr>
                     </thead>
@@ -777,6 +781,11 @@ export default function Admin() {
                             {editingNode === node.id ? (
                               <Input value={nodeEditForm.capacity} onChange={(e) => setNodeEditForm({ ...nodeEditForm, capacity: e.target.value })} className="h-8 text-xs w-24" type="number" />
                             ) : <span className="text-muted-foreground">{node.capacity}</span>}
+                          </td>
+                          <td className="px-4 py-3">
+                            {editingNode === node.id ? (
+                              <Input value={nodeEditForm.radius_km} onChange={(e) => setNodeEditForm({ ...nodeEditForm, radius_km: e.target.value })} className="h-8 text-xs w-20" type="number" step="0.5" min="0.5" />
+                            ) : <span className="text-muted-foreground">{node.radius_km ?? 4} km</span>}
                           </td>
                           <td className="px-4 py-3">
                             {editingNode === node.id ? (
@@ -813,7 +822,7 @@ export default function Admin() {
                         </tr>
                       ))}
                       {filteredNodes.length === 0 && (
-                        <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">{fiberNodes.length === 0 ? "No nodes. Use the Plan Routes tab to place markers on the map." : "No nodes match your filters."}</td></tr>
+                        <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">{fiberNodes.length === 0 ? "No nodes. Use the Plan Routes tab to place markers on the map." : "No nodes match your filters."}</td></tr>
                       )}
                     </tbody>
                   </table>

@@ -185,7 +185,7 @@ const PLAN_CATEGORIES: PlanCategory[] = [
 
 // ── Fibre eligibility check ────────────────────────────────
 
-const MAX_FIBRE_DISTANCE_KM = 4;
+const DEFAULT_RADIUS_KM = 4;
 
 async function checkFibreEligibility(lat: number, lng: number): Promise<{ eligible: boolean; nodeName?: string; suggestedCategories?: string[] }> {
   const { data: nodes } = await supabase.from("fiber_nodes").select("*");
@@ -194,8 +194,9 @@ async function checkFibreEligibility(lat: number, lng: number): Promise<{ eligib
   for (const node of nodes) {
     if (node.status !== "Active") continue;
     if (node.connected_customers >= node.capacity) continue;
+    const nodeRadius = (node as any).radius_km ?? DEFAULT_RADIUS_KM;
     const dist = haversine(lat, lng, node.latitude, node.longitude);
-    if (dist <= MAX_FIBRE_DISTANCE_KM) {
+    if (dist <= nodeRadius) {
       return { eligible: true, nodeName: node.name };
     }
   }
