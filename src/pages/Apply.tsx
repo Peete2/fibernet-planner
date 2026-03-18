@@ -136,6 +136,7 @@ export default function Apply() {
         .from("applications")
         .insert({
           customer_name: form.name.trim(),
+          title: form.accountType === "individual" && form.title ? form.title : null,
           email: form.email.trim() || null,
           phone: form.phone.trim() || null,
           national_id: form.nationalId.trim() || null,
