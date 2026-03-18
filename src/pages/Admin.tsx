@@ -35,6 +35,7 @@ interface Application {
   id: string;
   ref_code: string;
   customer_name: string;
+  title: string | null;
   service: string;
   district: string;
   location: string | null;
