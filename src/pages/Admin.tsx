@@ -759,8 +759,9 @@ export default function Admin() {
                       <tr className="border-b border-border bg-muted/50">
                         <th className="px-4 py-3 text-left font-medium text-muted-foreground">Name</th>
                         <th className="px-4 py-3 text-left font-medium text-muted-foreground">Lat / Lng</th>
-                        <th className="px-4 py-3 text-left font-medium text-muted-foreground">Capacity</th>
-                        <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
+                         <th className="px-4 py-3 text-left font-medium text-muted-foreground">Capacity</th>
+                         <th className="px-4 py-3 text-left font-medium text-muted-foreground">Radius (km)</th>
+                         <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
                         <th className="px-4 py-3 text-left font-medium text-muted-foreground">Actions</th>
                       </tr>
                     </thead>
