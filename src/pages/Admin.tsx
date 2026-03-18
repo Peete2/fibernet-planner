@@ -54,6 +54,7 @@ interface FiberNode {
   longitude: number;
   capacity: number;
   status: string;
+  radius_km: number;
 }
 
 interface FiberRoute {
