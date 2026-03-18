@@ -41,6 +41,7 @@ export type Database = {
           service: string
           status: string
           technician: string | null
+          title: string | null
           updated_at: string
           user_id: string | null
         }
@@ -70,6 +71,7 @@ export type Database = {
           service: string
           status?: string
           technician?: string | null
+          title?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -99,6 +101,7 @@ export type Database = {
           service?: string
           status?: string
           technician?: string | null
+          title?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -113,6 +116,7 @@ export type Database = {
           latitude: number
           longitude: number
           name: string
+          radius_km: number
           status: string
           updated_at: string
         }
@@ -124,6 +128,7 @@ export type Database = {
           latitude: number
           longitude: number
           name: string
+          radius_km?: number
           status?: string
           updated_at?: string
         }
@@ -135,6 +140,7 @@ export type Database = {
           latitude?: number
           longitude?: number
           name?: string
+          radius_km?: number
           status?: string
           updated_at?: string
         }
