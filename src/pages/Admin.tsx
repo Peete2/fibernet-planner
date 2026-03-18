@@ -222,7 +222,7 @@ export default function Admin() {
 
   const startNodeEdit = (node: FiberNode) => {
     setEditingNode(node.id);
-    setNodeEditForm({ name: node.name, capacity: String(node.capacity), status: node.status });
+    setNodeEditForm({ name: node.name, capacity: String(node.capacity), status: node.status, radius_km: String(node.radius_km ?? 4) });
   };
 
   const saveNodeEdit = async (id: string) => {
@@ -230,7 +230,8 @@ export default function Admin() {
       name: nodeEditForm.name,
       capacity: parseInt(nodeEditForm.capacity, 10),
       status: nodeEditForm.status,
-    }).eq("id", id);
+      radius_km: parseFloat(nodeEditForm.radius_km) || 4,
+    } as any).eq("id", id);
     if (error) toast.error(error.message);
     else { toast.success("Node updated"); setEditingNode(null); fetchData(); }
   };
