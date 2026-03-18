@@ -185,7 +185,7 @@ export default function Apply() {
               setSubmittedRef(null);
               setIdFile(null);
               setLetterFile(null);
-              setForm({ accountType: "individual", name: "", email: "", phone: "", nationalId: "", address: "", service: "", servicePlanId: "", serviceCategory: "", district: "", location: "", buildingType: "residential", floors: "1", nearestLandmark: "", preferredDate: "", notes: "", latitude: "", longitude: "", applicantRole: "" });
+              setForm({ accountType: "individual", title: "", name: "", email: "", phone: "", nationalId: "", address: "", service: "", servicePlanId: "", serviceCategory: "", district: "", location: "", buildingType: "residential", floors: "1", nearestLandmark: "", preferredDate: "", notes: "", latitude: "", longitude: "", applicantRole: "" });
             }}>
               Submit Another
             </Button>
