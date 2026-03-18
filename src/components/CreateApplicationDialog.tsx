@@ -19,6 +19,7 @@ export default function CreateApplicationDialog({ onCreated }: Props) {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     customer_name: "",
+    title: "",
     email: "",
     phone: "",
     service: "",
