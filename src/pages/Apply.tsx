@@ -241,6 +241,17 @@ export default function Apply() {
             </div>
 
             <div className="grid sm:grid-cols-2 gap-4">
+              {form.accountType === "individual" && (
+                <div>
+                  <Label>Title</Label>
+                  <Select value={form.title} onValueChange={(v) => setForm({ ...form, title: v })}>
+                    <SelectTrigger><SelectValue placeholder="Select title" /></SelectTrigger>
+                    <SelectContent>
+                      {["Mr", "Mrs", "Miss", "Prof", "Doc"].map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div>
                 <Label htmlFor="name">
                   {form.accountType === "individual" ? "Full Name" : form.accountType === "school" ? "School Name" : "Business Name"} *
