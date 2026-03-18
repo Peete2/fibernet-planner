@@ -70,9 +70,20 @@ export default function CreateApplicationDialog({ onCreated }: Props) {
           <DialogTitle>Create Application</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label>Customer Name *</Label>
-            <Input value={form.customer_name} onChange={(e) => setForm({ ...form, customer_name: e.target.value })} placeholder="Full name" />
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <Label>Title</Label>
+              <Select value={form.title} onValueChange={(v) => setForm({ ...form, title: v })}>
+                <SelectTrigger><SelectValue placeholder="Title" /></SelectTrigger>
+                <SelectContent>
+                  {["Mr", "Mrs", "Miss", "Prof", "Doc"].map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="col-span-2">
+              <Label>Customer Name *</Label>
+              <Input value={form.customer_name} onChange={(e) => setForm({ ...form, customer_name: e.target.value })} placeholder="Full name" />
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
