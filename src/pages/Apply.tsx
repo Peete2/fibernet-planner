@@ -37,6 +37,7 @@ export default function Apply() {
   
   const [form, setForm] = useState({
     accountType: "individual",
+    title: "",
     name: profile?.full_name || "",
     email: profile?.email || user?.email || "",
     phone: profile?.phone || "",
