@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from "recharts";
 import { DISTRICTS } from "@/lib/mock-data";
-import { Users, FileText, CheckCircle, Wifi, Pencil, Trash2, X, Save, BarChart3, Route, Flame, CalendarDays, UserCheck, Plus, Search, ChevronLeft, ChevronRight, ScrollText, UsersRound, Download, Brain, Radio, Cable, School, FileDown, ExternalLink } from "lucide-react";
+import { Users, FileText, CheckCircle, Wifi, Pencil, Trash2, X, Save, BarChart3, Route, Flame, CalendarDays, UserCheck, Plus, Search, ChevronLeft, ChevronRight, ScrollText, UsersRound, Download, Brain, Radio, Cable, School, FileDown, ExternalLink, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -15,6 +15,7 @@ import AdminDrawMap from "@/components/AdminDrawMap";
 import CreateApplicationDialog from "@/components/CreateApplicationDialog";
 import SystemLogsPanel from "@/components/SystemLogsPanel";
 import AdminUserManagement from "@/components/AdminUserManagement";
+import ServicePlansManager from "@/components/ServicePlansManager";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import Footer from "@/components/Footer";
 import PageSkeleton from "@/components/PageSkeleton";
@@ -188,6 +189,7 @@ export default function Admin() {
   };
 
   const saveEdit = async (id: string) => {
+    const before = applications.find((a) => a.id === id);
     const { error } = await supabase
       .from("applications")
       .update({
@@ -196,8 +198,29 @@ export default function Admin() {
         scheduled_date: editForm.scheduled_date || null,
       })
       .eq("id", id);
-    if (error) toast.error(error.message);
-    else { toast.success("Application updated"); setEditingApp(null); fetchData(); }
+    if (error) { toast.error(error.message); return; }
+    toast.success("Application updated");
+    setEditingApp(null);
+
+    // Fire-and-forget status-change email
+    if (before && before.status !== editForm.status) {
+      try {
+        const { data: full } = await supabase.from("applications").select("email, customer_name, ref_code, service").eq("id", id).single();
+        if (full?.email) {
+          supabase.functions.invoke("send-status-email", {
+            body: {
+              to: full.email,
+              customerName: full.customer_name,
+              refCode: full.ref_code,
+              service: full.service,
+              oldStatus: before.status,
+              newStatus: editForm.status,
+            },
+          }).catch((e) => console.warn("Email send failed:", e));
+        }
+      } catch (e) { console.warn(e); }
+    }
+    fetchData();
   };
 
   const deleteApp = async (id: string) => {
@@ -263,6 +286,28 @@ export default function Admin() {
     }
   };
 
+  const exportApplicationsCSV = () => {
+    if (filteredApps.length === 0) { toast.error("No applications to export"); return; }
+    const headers = ["Ref", "Customer", "Title", "Service", "District", "Location", "Status", "Technician", "Scheduled", "Created"];
+    const escape = (v: any) => {
+      const s = v == null ? "" : String(v);
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const rows = filteredApps.map((a) => [
+      a.ref_code, a.customer_name, a.title || "", a.service, a.district, a.location || "",
+      a.status, a.technician || "", a.scheduled_date || "", new Date(a.created_at).toISOString().slice(0, 10),
+    ].map(escape).join(","));
+    const csv = [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `applications-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success(`Exported ${filteredApps.length} application${filteredApps.length === 1 ? "" : "s"}`);
+  };
+
   // Analytics data
   const districtData = DISTRICTS.map((d) => ({
     name: d.length > 8 ? d.slice(0, 8) + "." : d,
@@ -313,6 +358,7 @@ export default function Admin() {
               <TabsTrigger value="analytics" className="gap-1.5"><BarChart3 className="w-4 h-4" />Analytics</TabsTrigger>
               <TabsTrigger value="plan" className="gap-1.5"><Route className="w-4 h-4" />Plan Routes</TabsTrigger>
               <TabsTrigger value="nodes" className="gap-1.5"><Wifi className="w-4 h-4" />Manage Nodes</TabsTrigger>
+              <TabsTrigger value="plans" className="gap-1.5"><Package className="w-4 h-4" />Service Plans</TabsTrigger>
               <TabsTrigger value="ai-planner" className="gap-1.5"><Brain className="w-4 h-4" />AI Planner</TabsTrigger>
               <TabsTrigger value="heatmap" className="gap-1.5"><Flame className="w-4 h-4" />Heatmap</TabsTrigger>
               <TabsTrigger value="users" className="gap-1.5"><UsersRound className="w-4 h-4" />Users</TabsTrigger>
@@ -366,7 +412,12 @@ export default function Admin() {
                 <div className="p-5 border-b border-border space-y-3">
                   <div className="flex items-center justify-between">
                     <h3 className="font-display font-semibold text-foreground">All Applications ({filteredApps.length}{filteredApps.length !== applications.length ? ` of ${applications.length}` : ""})</h3>
-                    <CreateApplicationDialog onCreated={fetchData} />
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" onClick={exportApplicationsCSV} className="gap-1.5">
+                        <Download className="w-4 h-4" /> Export CSV
+                      </Button>
+                      <CreateApplicationDialog onCreated={fetchData} />
+                    </div>
                   </div>
 
                   {/* Service category sub-tabs */}
@@ -862,6 +913,9 @@ export default function Admin() {
             </TabsContent>
 
             {/* ========== AI PLANNER ========== */}
+            <TabsContent value="plans">
+              <ServicePlansManager />
+            </TabsContent>
             <TabsContent value="ai-planner">
               <div className="bg-card border border-border rounded-xl p-5 shadow-telecom">
                 <AISuggestionsPanel onNodeCreated={fetchData} />

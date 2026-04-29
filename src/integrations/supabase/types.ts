@@ -230,6 +230,45 @@ export type Database = {
         }
         Relationships: []
       }
+      service_plans: {
+        Row: {
+          category_id: string
+          created_at: string
+          details: Json
+          id: string
+          is_active: boolean
+          name: string
+          price: string
+          sort_order: number
+          speed: string | null
+          updated_at: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          details?: Json
+          id?: string
+          is_active?: boolean
+          name: string
+          price: string
+          sort_order?: number
+          speed?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          details?: Json
+          id?: string
+          is_active?: boolean
+          name?: string
+          price?: string
+          sort_order?: number
+          speed?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       system_logs: {
         Row: {
           created_at: string
