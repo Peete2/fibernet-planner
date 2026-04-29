@@ -27,161 +27,16 @@ interface PlanCategory {
 
 export type ServiceCategoryId = "fmc" | "lte" | "fibre" | "fwa";
 
-const PLAN_CATEGORIES: PlanCategory[] = [
-  {
-    id: "fmc",
-    label: "Wi-Fi PLUS",
-    icon: Wifi,
-    description: "Home WiFi + mobile data in one subscription",
-    plans: [
-      {
-        id: "fmc-bronze",
-        category: "Wi-Fi PLUS",
-        name: "Bronze",
-        price: "M499/mo",
-        speed: "30 Mbps ↓ / 20 Mbps ↑",
-        details: ["Integrated mobile data & voice", "Home WiFi router included"],
-      },
-      {
-        id: "fmc-silver",
-        category: "Wi-Fi PLUS",
-        name: "Silver",
-        price: "M649/mo",
-        speed: "70 Mbps ↓ / 25 Mbps ↑",
-        details: ["Integrated mobile data & voice", "Home WiFi router included"],
-      },
-      {
-        id: "fmc-gold",
-        category: "Wi-Fi PLUS",
-        name: "Gold",
-        price: "M899/mo",
-        speed: "90 Mbps ↓ / 30 Mbps ↑",
-        details: ["Up to 300GB FUP", "Integrated mobile data & voice", "Home WiFi router included"],
-      },
-    ],
-  },
-  {
-    id: "lte",
-    label: "Fixed LTE",
-    icon: Radio,
-    description: "Unlimited LTE for home & office",
-    plans: [
-      {
-        id: "lte-combo",
-        category: "Fixed LTE",
-        name: "Always On Combo",
-        price: "M748/mo",
-        speed: "Unlimited LTE",
-        details: ["Unlimited LTE included", "10GB Mobile Data bonus"],
-      },
-      {
-        id: "lte-15",
-        category: "Fixed LTE",
-        name: "Unlimited 15Mbps",
-        price: "M649/mo",
-        speed: "15 Mbps",
-        details: ["100GB Fair Usage Policy", "No contract required"],
-      },
-      {
-        id: "lte-20",
-        category: "Fixed LTE",
-        name: "Unlimited 20Mbps",
-        price: "M899/mo",
-        speed: "20 Mbps",
-        details: ["200GB Fair Usage Policy"],
-      },
-      {
-        id: "lte-40",
-        category: "Fixed LTE",
-        name: "Unlimited 40Mbps",
-        price: "M1,599/mo",
-        speed: "40 Mbps",
-        details: ["300GB Fair Usage Policy", "Best for heavy usage"],
-      },
-    ],
-  },
-  {
-    id: "fibre",
-    label: "Fibre (GPON)",
-    icon: Cable,
-    description: "Ultra-fast fibre – requires coverage area",
-    requiresFibreCheck: true,
-    plans: [
-      {
-        id: "fibre-silver",
-        category: "Fibre (GPON)",
-        name: "Fibre Silver",
-        price: "M1,599/mo",
-        speed: "90 Mbps ↓ / 30 Mbps ↑",
-        details: ["Dedicated fibre line", "Symmetrical speeds available"],
-      },
-      {
-        id: "fibre-topup-75",
-        category: "Fibre (GPON)",
-        name: "Top-Up 75GB",
-        price: "M870",
-        details: ["75GB once-off data bundle"],
-      },
-      {
-        id: "fibre-topup-100",
-        category: "Fibre (GPON)",
-        name: "Top-Up 100GB",
-        price: "M1,080",
-        details: ["100GB once-off data bundle"],
-      },
-      {
-        id: "fibre-topup-150",
-        category: "Fibre (GPON)",
-        name: "Top-Up 150GB",
-        price: "M1,240",
-        details: ["150GB once-off data bundle"],
-      },
-    ],
-  },
-  {
-    id: "fwa",
-    label: "Limited Wi-Fi",
-    icon: School,
-    description: "Affordable data for schools & students",
-    plans: [
-      {
-        id: "fwa-school",
-        category: "Limited Wi-Fi",
-        name: "Limited Wi-Fi for School",
-        price: "M129/mo",
-        details: ["40GB data allocation", "Ideal for institutions"],
-      },
-      {
-        id: "fwa-10",
-        category: "Limited Wi-Fi",
-        name: "LTE Hybrid 10GB",
-        price: "M50/mo",
-        details: ["10GB monthly data", "Student / Teacher plan"],
-      },
-      {
-        id: "fwa-25",
-        category: "Limited Wi-Fi",
-        name: "LTE Hybrid 25GB",
-        price: "M99/mo",
-        details: ["25GB monthly data", "Student / Teacher plan"],
-      },
-      {
-        id: "fwa-40",
-        category: "Limited Wi-Fi",
-        name: "LTE Hybrid 40GB",
-        price: "M129/mo",
-        details: ["40GB monthly data", "Student / Teacher plan"],
-      },
-      {
-        id: "fwa-80",
-        category: "Limited Wi-Fi",
-        name: "LTE Hybrid 80GB",
-        price: "M249/mo",
-        details: ["80GB monthly data", "Student / Teacher plan"],
-      },
-    ],
-  },
-];
+// Fixed category metadata. Plans are loaded dynamically from the
+// `service_plans` table in the database (admin-managed).
+const CATEGORY_META: Record<ServiceCategoryId, { label: string; icon: React.ElementType; description: string; requiresFibreCheck?: boolean }> = {
+  fmc:   { label: "Wi-Fi PLUS",     icon: Wifi,   description: "Home WiFi + mobile data in one subscription" },
+  lte:   { label: "Fixed LTE",      icon: Radio,  description: "Unlimited LTE for home & office" },
+  fibre: { label: "Fibre (GPON)",   icon: Cable,  description: "Ultra-fast fibre – requires coverage area", requiresFibreCheck: true },
+  fwa:   { label: "Limited Wi-Fi",  icon: School, description: "Affordable data for schools & students" },
+};
+
+const CATEGORY_ORDER: ServiceCategoryId[] = ["fmc", "lte", "fibre", "fwa"];
 
 // ── Fibre eligibility check ────────────────────────────────
 
@@ -238,9 +93,44 @@ export default function ServicePlanSelector({ value, onChange, onCategoryChange,
   const [fibreNode, setFibreNode] = useState<string | null>(null);
   const [checkingFibre, setCheckingFibre] = useState(false);
   const [suggestedCategories, setSuggestedCategories] = useState<string[]>([]);
+  const [planCategories, setPlanCategories] = useState<PlanCategory[]>([]);
+  const [loadingPlans, setLoadingPlans] = useState(true);
+
+  // Load plans from DB and group by category
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      const { data, error } = await supabase
+        .from("service_plans")
+        .select("*")
+        .eq("is_active", true)
+        .order("sort_order", { ascending: true });
+      if (!mounted) return;
+      if (error || !data) { setLoadingPlans(false); return; }
+
+      const grouped: PlanCategory[] = CATEGORY_ORDER.map((catId) => {
+        const meta = CATEGORY_META[catId];
+        const plans: ServicePlan[] = data
+          .filter((p: any) => p.category_id === catId)
+          .map((p: any) => ({
+            id: p.id,
+            category: meta.label,
+            name: p.name,
+            price: p.price,
+            speed: p.speed || undefined,
+            details: Array.isArray(p.details) ? p.details : [],
+          }));
+        return { id: catId, label: meta.label, icon: meta.icon, description: meta.description, plans, requiresFibreCheck: meta.requiresFibreCheck };
+      }).filter((c) => c.plans.length > 0);
+
+      setPlanCategories(grouped);
+      setLoadingPlans(false);
+    })();
+    return () => { mounted = false; };
+  }, []);
 
   // Filter out Limited Wi-Fi for business accounts
-  const visibleCategories = PLAN_CATEGORIES.filter((cat) => {
+  const visibleCategories = planCategories.filter((cat) => {
     if (accountType === "business" && cat.id === "fwa") return false;
     return true;
   });
@@ -267,7 +157,7 @@ export default function ServicePlanSelector({ value, onChange, onCategoryChange,
     });
   }, [selectedCategory, latitude, longitude]);
 
-  const selectedPlan = PLAN_CATEGORIES.flatMap((c) => c.plans).find((p) => p.id === value);
+  const selectedPlan = planCategories.flatMap((c) => c.plans).find((p) => p.id === value);
 
   const handleSuggestionClick = (catId: string) => {
     setSelectedCategory(catId);
@@ -275,6 +165,11 @@ export default function ServicePlanSelector({ value, onChange, onCategoryChange,
 
   return (
     <div className="space-y-3">
+      {loadingPlans && (
+        <div className="flex items-center justify-center py-6 text-muted-foreground text-sm">
+          <Loader2 className="w-4 h-4 animate-spin mr-2" /> Loading plans…
+        </div>
+      )}
       <AnimatePresence mode="wait">
         {!selectedCategory ? (
           <motion.div
