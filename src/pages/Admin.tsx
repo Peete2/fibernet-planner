@@ -389,7 +389,12 @@ export default function Admin() {
                 <div className="p-5 border-b border-border space-y-3">
                   <div className="flex items-center justify-between">
                     <h3 className="font-display font-semibold text-foreground">All Applications ({filteredApps.length}{filteredApps.length !== applications.length ? ` of ${applications.length}` : ""})</h3>
-                    <CreateApplicationDialog onCreated={fetchData} />
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" onClick={exportApplicationsCSV} className="gap-1.5">
+                        <Download className="w-4 h-4" /> Export CSV
+                      </Button>
+                      <CreateApplicationDialog onCreated={fetchData} />
+                    </div>
                   </div>
 
                   {/* Service category sub-tabs */}
