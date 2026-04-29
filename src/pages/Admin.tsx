@@ -336,6 +336,7 @@ export default function Admin() {
               <TabsTrigger value="analytics" className="gap-1.5"><BarChart3 className="w-4 h-4" />Analytics</TabsTrigger>
               <TabsTrigger value="plan" className="gap-1.5"><Route className="w-4 h-4" />Plan Routes</TabsTrigger>
               <TabsTrigger value="nodes" className="gap-1.5"><Wifi className="w-4 h-4" />Manage Nodes</TabsTrigger>
+              <TabsTrigger value="plans" className="gap-1.5"><Package className="w-4 h-4" />Service Plans</TabsTrigger>
               <TabsTrigger value="ai-planner" className="gap-1.5"><Brain className="w-4 h-4" />AI Planner</TabsTrigger>
               <TabsTrigger value="heatmap" className="gap-1.5"><Flame className="w-4 h-4" />Heatmap</TabsTrigger>
               <TabsTrigger value="users" className="gap-1.5"><UsersRound className="w-4 h-4" />Users</TabsTrigger>
