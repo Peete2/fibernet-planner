@@ -16,6 +16,7 @@ import CreateApplicationDialog from "@/components/CreateApplicationDialog";
 import SystemLogsPanel from "@/components/SystemLogsPanel";
 import AdminUserManagement from "@/components/AdminUserManagement";
 import ServicePlansManager from "@/components/ServicePlansManager";
+import DocumentPreview from "@/components/DocumentPreview";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import Footer from "@/components/Footer";
 import PageSkeleton from "@/components/PageSkeleton";
