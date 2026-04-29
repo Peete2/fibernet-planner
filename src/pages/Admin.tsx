@@ -410,6 +410,7 @@ export default function Admin() {
               <TabsTrigger value="heatmap" className="gap-1.5"><Flame className="w-4 h-4" />Heatmap</TabsTrigger>
               <TabsTrigger value="users" className="gap-1.5"><UsersRound className="w-4 h-4" />Users</TabsTrigger>
               <TabsTrigger value="logs" className="gap-1.5"><ScrollText className="w-4 h-4" />System Logs</TabsTrigger>
+              <TabsTrigger value="audit" className="gap-1.5"><Shield className="w-4 h-4" />Audit Log</TabsTrigger>
             </TabsList>
 
             {/* ========== OVERVIEW ========== */}
