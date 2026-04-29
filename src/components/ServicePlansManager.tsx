@@ -4,10 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import { logAudit } from "@/lib/audit";
 
 interface ServicePlanRow {
   id: string;
@@ -18,6 +20,7 @@ interface ServicePlanRow {
   details: string[];
   is_active: boolean;
   sort_order: number;
+  visible_to: string[];
 }
 
 const CATEGORIES = [
@@ -27,7 +30,17 @@ const CATEGORIES = [
   { id: "fwa",   label: "Limited Wi-Fi", icon: School },
 ] as const;
 
-const emptyForm = { category_id: "fmc" as ServicePlanRow["category_id"], name: "", price: "", speed: "", details: "", sort_order: "0" };
+const ACCOUNT_TYPES = [
+  { id: "individual", label: "Individual" },
+  { id: "business",   label: "Business" },
+  { id: "school",     label: "School" },
+] as const;
+
+const emptyForm = {
+  category_id: "fmc" as ServicePlanRow["category_id"],
+  name: "", price: "", speed: "", details: "", sort_order: "0",
+  visible_to: ["individual", "business", "school"] as string[],
+};
 
 export default function ServicePlansManager() {
   const [plans, setPlans] = useState<ServicePlanRow[]>([]);
@@ -57,6 +70,7 @@ export default function ServicePlansManager() {
       speed: p.speed || "",
       details: (p.details || []).join("\n"),
       sort_order: String(p.sort_order),
+      visible_to: Array.isArray(p.visible_to) && p.visible_to.length > 0 ? p.visible_to : ["individual","business","school"],
     });
   };
 
@@ -71,6 +85,7 @@ export default function ServicePlansManager() {
 
   const save = async () => {
     if (!form.name.trim() || !form.price.trim()) { toast.error("Name and price are required"); return; }
+    if (form.visible_to.length === 0) { toast.error("Select at least one account type"); return; }
     const detailsArr = form.details.split("\n").map((s) => s.trim()).filter(Boolean);
     const payload = {
       category_id: form.category_id,
@@ -79,13 +94,20 @@ export default function ServicePlansManager() {
       speed: form.speed.trim() || null,
       details: detailsArr,
       sort_order: parseInt(form.sort_order, 10) || 0,
+      visible_to: form.visible_to,
     };
-    const op = editingId
-      ? supabase.from("service_plans").update(payload).eq("id", editingId)
-      : supabase.from("service_plans").insert(payload);
-    const { error } = await op;
-    if (error) { toast.error(error.message); return; }
-    toast.success(editingId ? "Plan updated" : "Plan created");
+    const before = editingId ? plans.find((p) => p.id === editingId) : null;
+    if (editingId) {
+      const { error } = await supabase.from("service_plans").update(payload).eq("id", editingId);
+      if (error) { toast.error(error.message); return; }
+      logAudit({ action: "update", target_type: "service_plan", target_id: editingId, target_label: payload.name, before, after: payload });
+      toast.success("Plan updated");
+    } else {
+      const { data, error } = await supabase.from("service_plans").insert(payload).select().single();
+      if (error) { toast.error(error.message); return; }
+      logAudit({ action: "create", target_type: "service_plan", target_id: data?.id, target_label: payload.name, after: payload });
+      toast.success("Plan created");
+    }
     cancel();
     fetchPlans();
   };
@@ -93,13 +115,22 @@ export default function ServicePlansManager() {
   const toggleActive = async (p: ServicePlanRow) => {
     const { error } = await supabase.from("service_plans").update({ is_active: !p.is_active }).eq("id", p.id);
     if (error) toast.error(error.message);
-    else { toast.success(p.is_active ? "Plan disabled" : "Plan enabled"); fetchPlans(); }
+    else {
+      logAudit({ action: "toggle", target_type: "service_plan", target_id: p.id, target_label: p.name, before: { is_active: p.is_active }, after: { is_active: !p.is_active } });
+      toast.success(p.is_active ? "Plan disabled" : "Plan enabled");
+      fetchPlans();
+    }
   };
 
   const deletePlan = async (id: string) => {
+    const target = plans.find((p) => p.id === id);
     const { error } = await supabase.from("service_plans").delete().eq("id", id);
     if (error) toast.error(error.message);
-    else { toast.success("Plan deleted"); fetchPlans(); }
+    else {
+      logAudit({ action: "delete", target_type: "service_plan", target_id: id, target_label: target?.name, before: target });
+      toast.success("Plan deleted");
+      fetchPlans();
+    }
   };
 
   const visiblePlans = plans.filter((p) => p.category_id === activeCat);
@@ -171,6 +202,30 @@ export default function ServicePlansManager() {
             <div className="md:col-span-2">
               <label className="text-xs text-muted-foreground">Features (one per line)</label>
               <Textarea rows={3} value={form.details} onChange={(e) => setForm({ ...form, details: e.target.value })} placeholder="Integrated mobile data &amp; voice&#10;Home WiFi router included" className="text-sm" />
+            </div>
+            <div className="md:col-span-2">
+              <label className="text-xs text-muted-foreground">Visible to account types</label>
+              <div className="flex flex-wrap gap-3 mt-2">
+                {ACCOUNT_TYPES.map((acc) => {
+                  const checked = form.visible_to.includes(acc.id);
+                  return (
+                    <label key={acc.id} className="flex items-center gap-2 text-sm cursor-pointer">
+                      <Checkbox
+                        checked={checked}
+                        onCheckedChange={(v) => {
+                          setForm({
+                            ...form,
+                            visible_to: v
+                              ? Array.from(new Set([...form.visible_to, acc.id]))
+                              : form.visible_to.filter((x) => x !== acc.id),
+                          });
+                        }}
+                      />
+                      {acc.label}
+                    </label>
+                  );
+                })}
+              </div>
             </div>
           </div>
           <div className="flex gap-2 justify-end">
