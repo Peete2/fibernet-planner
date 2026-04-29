@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { Fragment, useEffect, useState, useMemo } from "react";
 import { Search, RefreshCw, ChevronDown, ChevronRight, Shield, Package, FileText, Wifi, Route as RouteIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -148,8 +148,8 @@ export default function AuditLogPanel() {
               const Icon = TARGET_ICONS[e.target_type] || FileText;
               const isOpen = expanded.has(e.id);
               return (
-                <>
-                  <tr key={e.id} className="border-b border-border hover:bg-muted/30">
+                <Fragment key={e.id}>
+                  <tr className="border-b border-border hover:bg-muted/30">
                     <td className="px-4 py-3">
                       <button onClick={() => toggle(e.id)} className="text-muted-foreground hover:text-foreground">
                         {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
@@ -171,11 +171,11 @@ export default function AuditLogPanel() {
                     <td className="px-4 py-3 text-foreground text-xs">{e.target_label || <span className="text-muted-foreground">—</span>}</td>
                   </tr>
                   {isOpen && (
-                    <tr key={`${e.id}-detail`} className="bg-muted/20 border-b border-border">
+                    <tr className="bg-muted/20 border-b border-border">
                       <td colSpan={6} className="px-4 py-3">{renderDiff(e)}</td>
                     </tr>
                   )}
-                </>
+                </Fragment>
               );
             })}
           </tbody>
