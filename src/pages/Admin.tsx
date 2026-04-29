@@ -264,6 +264,28 @@ export default function Admin() {
     }
   };
 
+  const exportApplicationsCSV = () => {
+    if (filteredApps.length === 0) { toast.error("No applications to export"); return; }
+    const headers = ["Ref", "Customer", "Title", "Service", "District", "Location", "Status", "Technician", "Scheduled", "Created"];
+    const escape = (v: any) => {
+      const s = v == null ? "" : String(v);
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const rows = filteredApps.map((a) => [
+      a.ref_code, a.customer_name, a.title || "", a.service, a.district, a.location || "",
+      a.status, a.technician || "", a.scheduled_date || "", new Date(a.created_at).toISOString().slice(0, 10),
+    ].map(escape).join(","));
+    const csv = [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `applications-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success(`Exported ${filteredApps.length} application${filteredApps.length === 1 ? "" : "s"}`);
+  };
+
   // Analytics data
   const districtData = DISTRICTS.map((d) => ({
     name: d.length > 8 ? d.slice(0, 8) + "." : d,
