@@ -189,6 +189,7 @@ export default function Admin() {
   };
 
   const saveEdit = async (id: string) => {
+    const before = applications.find((a) => a.id === id);
     const { error } = await supabase
       .from("applications")
       .update({
@@ -197,8 +198,29 @@ export default function Admin() {
         scheduled_date: editForm.scheduled_date || null,
       })
       .eq("id", id);
-    if (error) toast.error(error.message);
-    else { toast.success("Application updated"); setEditingApp(null); fetchData(); }
+    if (error) { toast.error(error.message); return; }
+    toast.success("Application updated");
+    setEditingApp(null);
+
+    // Fire-and-forget status-change email
+    if (before && before.status !== editForm.status) {
+      try {
+        const { data: full } = await supabase.from("applications").select("email, customer_name, ref_code, service").eq("id", id).single();
+        if (full?.email) {
+          supabase.functions.invoke("send-status-email", {
+            body: {
+              to: full.email,
+              customerName: full.customer_name,
+              refCode: full.ref_code,
+              service: full.service,
+              oldStatus: before.status,
+              newStatus: editForm.status,
+            },
+          }).catch((e) => console.warn("Email send failed:", e));
+        }
+      } catch (e) { console.warn(e); }
+    }
+    fetchData();
   };
 
   const deleteApp = async (id: string) => {
