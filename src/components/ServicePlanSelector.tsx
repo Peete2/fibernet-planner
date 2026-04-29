@@ -342,4 +342,4 @@ export default function ServicePlanSelector({ value, onChange, onCategoryChange,
   );
 }
 
-export { PLAN_CATEGORIES };
+export { CATEGORY_META, CATEGORY_ORDER };
