@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from "recharts";
 import { DISTRICTS } from "@/lib/mock-data";
-import { Users, FileText, CheckCircle, Wifi, Pencil, Trash2, X, Save, BarChart3, Route, Flame, CalendarDays, UserCheck, Plus, Search, ChevronLeft, ChevronRight, ScrollText, UsersRound, Download, Brain, Radio, Cable, School, FileDown, ExternalLink, Package } from "lucide-react";
+import { Users, FileText, CheckCircle, Wifi, Pencil, Trash2, X, Save, BarChart3, Route, Flame, CalendarDays, UserCheck, Plus, Search, ChevronLeft, ChevronRight, ScrollText, UsersRound, Download, Brain, Radio, Cable, School, FileDown, ExternalLink, Package, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -16,11 +16,14 @@ import CreateApplicationDialog from "@/components/CreateApplicationDialog";
 import SystemLogsPanel from "@/components/SystemLogsPanel";
 import AdminUserManagement from "@/components/AdminUserManagement";
 import ServicePlansManager from "@/components/ServicePlansManager";
+import DocumentPreview from "@/components/DocumentPreview";
+import AuditLogPanel from "@/components/AuditLogPanel";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import Footer from "@/components/Footer";
 import PageSkeleton from "@/components/PageSkeleton";
 import AISuggestionsPanel from "@/components/AISuggestionsPanel";
 import { generateApplicationPDF, detectCategory, categoryLabels, type ServiceCategory } from "@/lib/pdf-generator";
+import { logAudit } from "@/lib/audit";
 
 const statusColors: Record<string, string> = {
   Submitted: "hsl(45 90% 50%)",
@@ -202,6 +205,16 @@ export default function Admin() {
     toast.success("Application updated");
     setEditingApp(null);
 
+    // Audit
+    logAudit({
+      action: before && before.status !== editForm.status ? "status_change" : "update",
+      target_type: "application",
+      target_id: id,
+      target_label: before?.ref_code,
+      before: before ? { status: before.status, technician: before.technician, scheduled_date: before.scheduled_date } : null,
+      after: { status: editForm.status, technician: editForm.technician || null, scheduled_date: editForm.scheduled_date || null },
+    });
+
     // Fire-and-forget status-change email
     if (before && before.status !== editForm.status) {
       try {
@@ -224,9 +237,14 @@ export default function Admin() {
   };
 
   const deleteApp = async (id: string) => {
+    const target = applications.find((a) => a.id === id);
     const { error } = await supabase.from("applications").delete().eq("id", id);
     if (error) toast.error(error.message);
-    else { toast.success("Application deleted"); fetchData(); }
+    else {
+      logAudit({ action: "delete", target_type: "application", target_id: id, target_label: target?.ref_code, before: target });
+      toast.success("Application deleted");
+      fetchData();
+    }
   };
 
   const handleAssign = async (appId: string) => {
@@ -234,6 +252,7 @@ export default function Admin() {
     const date = assignDate[appId];
     if (!tech) { toast.error("Select a technician"); return; }
 
+    const target = applications.find((a) => a.id === appId);
     const { error } = await supabase.from("applications").update({
       technician: tech,
       scheduled_date: date || null,
@@ -241,7 +260,15 @@ export default function Admin() {
     }).eq("id", appId);
 
     if (error) toast.error(error.message);
-    else { toast.success("Technician assigned"); fetchData(); }
+    else {
+      logAudit({
+        action: "assign", target_type: "application", target_id: appId, target_label: target?.ref_code,
+        before: target ? { technician: target.technician, scheduled_date: target.scheduled_date, status: target.status } : null,
+        after: { technician: tech, scheduled_date: date || null, status: date ? "Installation Scheduled" : "Site Survey" },
+      });
+      toast.success("Technician assigned");
+      fetchData();
+    }
   };
 
   const startNodeEdit = (node: FiberNode) => {
@@ -250,26 +277,46 @@ export default function Admin() {
   };
 
   const saveNodeEdit = async (id: string) => {
-    const { error } = await supabase.from("fiber_nodes").update({
+    const before = fiberNodes.find((n) => n.id === id);
+    const after = {
       name: nodeEditForm.name,
       capacity: parseInt(nodeEditForm.capacity, 10),
       status: nodeEditForm.status,
       radius_km: parseFloat(nodeEditForm.radius_km) || 4,
+    };
+    const { error } = await supabase.from("fiber_nodes").update({
+      ...after,
     } as any).eq("id", id);
     if (error) toast.error(error.message);
-    else { toast.success("Node updated"); setEditingNode(null); fetchData(); }
+    else {
+      logAudit({ action: "update", target_type: "fiber_node", target_id: id, target_label: after.name, before, after });
+      toast.success("Node updated");
+      setEditingNode(null);
+      fetchData();
+    }
   };
 
   const deleteNode = async (id: string) => {
+    const target = fiberNodes.find((n) => n.id === id);
     const { error } = await supabase.from("fiber_nodes").delete().eq("id", id);
     if (error) toast.error(error.message);
-    else { toast.success("Node deleted"); fetchData(); }
+    else {
+      logAudit({ action: "delete", target_type: "fiber_node", target_id: id, target_label: target?.name, before: target });
+      toast.success("Node deleted");
+      fetchData();
+    }
   };
 
   const deleteRoute = async (id: string) => {
+    const target = fiberRoutes.find((r) => r.id === id);
     const { error } = await supabase.from("fiber_routes").delete().eq("id", id);
     if (error) toast.error(error.message);
-    else { toast.success("Route deleted"); fetchData(); setDrawMapKey((k) => k + 1); }
+    else {
+      logAudit({ action: "delete", target_type: "fiber_route", target_id: id, target_label: target?.route_name });
+      toast.success("Route deleted");
+      fetchData();
+      setDrawMapKey((k) => k + 1);
+    }
   };
 
   const handleDownloadDoc = async (docUrl: string) => {
@@ -363,6 +410,7 @@ export default function Admin() {
               <TabsTrigger value="heatmap" className="gap-1.5"><Flame className="w-4 h-4" />Heatmap</TabsTrigger>
               <TabsTrigger value="users" className="gap-1.5"><UsersRound className="w-4 h-4" />Users</TabsTrigger>
               <TabsTrigger value="logs" className="gap-1.5"><ScrollText className="w-4 h-4" />System Logs</TabsTrigger>
+              <TabsTrigger value="audit" className="gap-1.5"><Shield className="w-4 h-4" />Audit Log</TabsTrigger>
             </TabsList>
 
             {/* ========== OVERVIEW ========== */}
@@ -553,14 +601,20 @@ export default function Admin() {
                                       else toast.error("Failed to load application data");
                                     }}><FileDown className="w-3.5 h-3.5" /></Button>
                                     {isFwa && app.document_url && (
-                                      <Button variant="ghost" size="icon" className="h-7 w-7" title="Download ID document" onClick={() => handleDownloadDoc(app.document_url!)}>
-                                        <ExternalLink className="w-3.5 h-3.5 text-accent" />
-                                      </Button>
+                                      <>
+                                        <DocumentPreview path={app.document_url} label={`ID — ${app.customer_name}`} />
+                                        <Button variant="ghost" size="icon" className="h-7 w-7" title="Download ID document" onClick={() => handleDownloadDoc(app.document_url!)}>
+                                          <ExternalLink className="w-3.5 h-3.5 text-accent" />
+                                        </Button>
+                                      </>
                                     )}
                                     {isFwa && app.affirmation_letter_url && (
-                                      <Button variant="ghost" size="icon" className="h-7 w-7" title="Download affirmation letter" onClick={() => handleDownloadDoc(app.affirmation_letter_url!)}>
-                                        <School className="w-3.5 h-3.5 text-secondary" />
-                                      </Button>
+                                      <>
+                                        <DocumentPreview path={app.affirmation_letter_url} label={`Affirmation letter — ${app.customer_name}`} />
+                                        <Button variant="ghost" size="icon" className="h-7 w-7" title="Download affirmation letter" onClick={() => handleDownloadDoc(app.affirmation_letter_url!)}>
+                                          <School className="w-3.5 h-3.5 text-secondary" />
+                                        </Button>
+                                      </>
                                     )}
                                     <ConfirmDialog onConfirm={() => deleteApp(app.id)} title="Delete application?" description={`This will permanently delete application ${app.ref_code}.`} />
                                   </>
@@ -953,6 +1007,11 @@ export default function Admin() {
                 </p>
                 <SystemLogsPanel />
               </div>
+            </TabsContent>
+
+            {/* ========== AUDIT LOG ========== */}
+            <TabsContent value="audit">
+              <AuditLogPanel />
             </TabsContent>
           </Tabs>
         </motion.div>

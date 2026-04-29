@@ -108,9 +108,17 @@ export default function ServicePlanSelector({ value, onChange, onCategoryChange,
       if (!mounted) return;
       if (error || !data) { setLoadingPlans(false); return; }
 
+      const acct = (accountType || "individual").toLowerCase();
+      const visibleData = data.filter((p: any) => {
+        const vt: string[] = Array.isArray(p.visible_to) && p.visible_to.length > 0
+          ? p.visible_to
+          : ["individual","business","school"];
+        return vt.includes(acct);
+      });
+
       const grouped: PlanCategory[] = CATEGORY_ORDER.map((catId) => {
         const meta = CATEGORY_META[catId];
-        const plans: ServicePlan[] = data
+        const plans: ServicePlan[] = visibleData
           .filter((p: any) => p.category_id === catId)
           .map((p: any) => ({
             id: p.id,
@@ -127,13 +135,10 @@ export default function ServicePlanSelector({ value, onChange, onCategoryChange,
       setLoadingPlans(false);
     })();
     return () => { mounted = false; };
-  }, []);
+  }, [accountType]);
 
-  // Filter out Limited Wi-Fi for business accounts
-  const visibleCategories = planCategories.filter((cat) => {
-    if (accountType === "business" && cat.id === "fwa") return false;
-    return true;
-  });
+  // visibility is now driven by per-plan visible_to flag (see fetch above)
+  const visibleCategories = planCategories;
 
   const activeCategory = visibleCategories.find((c) => c.id === selectedCategory);
 

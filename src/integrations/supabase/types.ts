@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          actor_name: string | null
+          after: Json | null
+          before: Json | null
+          created_at: string
+          id: string
+          target_id: string | null
+          target_label: string | null
+          target_type: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          actor_name?: string | null
+          after?: Json | null
+          before?: Json | null
+          created_at?: string
+          id?: string
+          target_id?: string | null
+          target_label?: string | null
+          target_type: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          actor_name?: string | null
+          after?: Json | null
+          before?: Json | null
+          created_at?: string
+          id?: string
+          target_id?: string | null
+          target_label?: string | null
+          target_type?: string
+        }
+        Relationships: []
+      }
       applications: {
         Row: {
           account_type: string
@@ -242,6 +281,7 @@ export type Database = {
           sort_order: number
           speed: string | null
           updated_at: string
+          visible_to: string[]
         }
         Insert: {
           category_id: string
@@ -254,6 +294,7 @@ export type Database = {
           sort_order?: number
           speed?: string | null
           updated_at?: string
+          visible_to?: string[]
         }
         Update: {
           category_id?: string
@@ -266,6 +307,7 @@ export type Database = {
           sort_order?: number
           speed?: string | null
           updated_at?: string
+          visible_to?: string[]
         }
         Relationships: []
       }
