@@ -1008,6 +1008,11 @@ export default function Admin() {
                 <SystemLogsPanel />
               </div>
             </TabsContent>
+
+            {/* ========== AUDIT LOG ========== */}
+            <TabsContent value="audit">
+              <AuditLogPanel />
+            </TabsContent>
           </Tabs>
         </motion.div>
       </div>
