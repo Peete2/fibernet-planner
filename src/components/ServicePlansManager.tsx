@@ -244,15 +244,16 @@ export default function ServicePlansManager() {
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">Price</th>
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">Speed</th>
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">Features</th>
+              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Visible to</th>
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">Loading…</td></tr>
+              <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">Loading…</td></tr>
             ) : visiblePlans.length === 0 ? (
-              <tr><td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">No plans in this category yet.</td></tr>
+              <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">No plans in this category yet.</td></tr>
             ) : visiblePlans.map((p) => (
               <tr key={p.id} className="border-b border-border hover:bg-muted/30">
                 <td className="px-4 py-3 text-muted-foreground">{p.sort_order}</td>
@@ -260,6 +261,13 @@ export default function ServicePlansManager() {
                 <td className="px-4 py-3 text-foreground">{p.price}</td>
                 <td className="px-4 py-3 text-muted-foreground">{p.speed || "—"}</td>
                 <td className="px-4 py-3 text-xs text-muted-foreground max-w-xs">{(p.details || []).join(" • ") || "—"}</td>
+                <td className="px-4 py-3">
+                  <div className="flex flex-wrap gap-1">
+                    {(p.visible_to || []).map((v) => (
+                      <Badge key={v} variant="outline" className="text-[10px] capitalize">{v}</Badge>
+                    ))}
+                  </div>
+                </td>
                 <td className="px-4 py-3">
                   {p.is_active
                     ? <Badge className="bg-secondary text-secondary-foreground">Active</Badge>
