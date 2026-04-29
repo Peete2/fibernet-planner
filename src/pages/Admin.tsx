@@ -892,6 +892,12 @@ export default function Admin() {
 
             {/* ========== AI PLANNER ========== */}
             <TabsContent value="ai-planner">
+              {null}
+            </TabsContent>
+            <TabsContent value="plans">
+              <ServicePlansManager />
+            </TabsContent>
+            <TabsContent value="ai-planner-content" className="hidden">
               <div className="bg-card border border-border rounded-xl p-5 shadow-telecom">
                 <AISuggestionsPanel onNodeCreated={fetchData} />
               </div>
