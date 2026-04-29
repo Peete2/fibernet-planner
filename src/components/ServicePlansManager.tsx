@@ -1,0 +1,229 @@
+import { useEffect, useState } from "react";
+import { Wifi, Radio, Cable, School, Plus, Pencil, Save, X, Power, PowerOff } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import ConfirmDialog from "@/components/ConfirmDialog";
+
+interface ServicePlanRow {
+  id: string;
+  category_id: "fmc" | "lte" | "fibre" | "fwa";
+  name: string;
+  price: string;
+  speed: string | null;
+  details: string[];
+  is_active: boolean;
+  sort_order: number;
+}
+
+const CATEGORIES = [
+  { id: "fmc",   label: "Wi-Fi PLUS",    icon: Wifi },
+  { id: "lte",   label: "Fixed LTE",     icon: Radio },
+  { id: "fibre", label: "Fibre (GPON)",  icon: Cable },
+  { id: "fwa",   label: "Limited Wi-Fi", icon: School },
+] as const;
+
+const emptyForm = { category_id: "fmc" as ServicePlanRow["category_id"], name: "", price: "", speed: "", details: "", sort_order: "0" };
+
+export default function ServicePlansManager() {
+  const [plans, setPlans] = useState<ServicePlanRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeCat, setActiveCat] = useState<ServicePlanRow["category_id"]>("fmc");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [form, setForm] = useState(emptyForm);
+
+  const fetchPlans = async () => {
+    setLoading(true);
+    const { data, error } = await supabase.from("service_plans").select("*").order("category_id").order("sort_order");
+    if (error) toast.error(error.message);
+    else setPlans((data || []).map((p: any) => ({ ...p, details: Array.isArray(p.details) ? p.details : [] })));
+    setLoading(false);
+  };
+
+  useEffect(() => { fetchPlans(); }, []);
+
+  const startEdit = (p: ServicePlanRow) => {
+    setEditingId(p.id);
+    setCreating(false);
+    setForm({
+      category_id: p.category_id,
+      name: p.name,
+      price: p.price,
+      speed: p.speed || "",
+      details: (p.details || []).join("\n"),
+      sort_order: String(p.sort_order),
+    });
+  };
+
+  const startCreate = (catId: ServicePlanRow["category_id"]) => {
+    setCreating(true);
+    setEditingId(null);
+    const maxOrder = plans.filter((p) => p.category_id === catId).reduce((m, p) => Math.max(m, p.sort_order), 0);
+    setForm({ ...emptyForm, category_id: catId, sort_order: String(maxOrder + 1) });
+  };
+
+  const cancel = () => { setEditingId(null); setCreating(false); setForm(emptyForm); };
+
+  const save = async () => {
+    if (!form.name.trim() || !form.price.trim()) { toast.error("Name and price are required"); return; }
+    const detailsArr = form.details.split("\n").map((s) => s.trim()).filter(Boolean);
+    const payload = {
+      category_id: form.category_id,
+      name: form.name.trim(),
+      price: form.price.trim(),
+      speed: form.speed.trim() || null,
+      details: detailsArr,
+      sort_order: parseInt(form.sort_order, 10) || 0,
+    };
+    const op = editingId
+      ? supabase.from("service_plans").update(payload).eq("id", editingId)
+      : supabase.from("service_plans").insert(payload);
+    const { error } = await op;
+    if (error) { toast.error(error.message); return; }
+    toast.success(editingId ? "Plan updated" : "Plan created");
+    cancel();
+    fetchPlans();
+  };
+
+  const toggleActive = async (p: ServicePlanRow) => {
+    const { error } = await supabase.from("service_plans").update({ is_active: !p.is_active }).eq("id", p.id);
+    if (error) toast.error(error.message);
+    else { toast.success(p.is_active ? "Plan disabled" : "Plan enabled"); fetchPlans(); }
+  };
+
+  const deletePlan = async (id: string) => {
+    const { error } = await supabase.from("service_plans").delete().eq("id", id);
+    if (error) toast.error(error.message);
+    else { toast.success("Plan deleted"); fetchPlans(); }
+  };
+
+  const visiblePlans = plans.filter((p) => p.category_id === activeCat);
+
+  return (
+    <div className="bg-card border border-border rounded-xl shadow-telecom overflow-hidden">
+      <div className="p-5 border-b border-border space-y-3">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <h3 className="font-display font-semibold text-foreground">Service Plans</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">Add, edit, enable/disable, or delete plans shown to customers on the Apply page.</p>
+          </div>
+          <Button size="sm" onClick={() => startCreate(activeCat)} className="gap-1.5">
+            <Plus className="w-4 h-4" /> New plan
+          </Button>
+        </div>
+
+        <div className="flex flex-wrap gap-1.5">
+          {CATEGORIES.map((cat) => {
+            const Icon = cat.icon;
+            const count = plans.filter((p) => p.category_id === cat.id).length;
+            const isActive = activeCat === cat.id;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => { setActiveCat(cat.id); cancel(); }}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
+                  isActive ? "border-primary bg-primary/10 text-primary" : "border-border bg-muted/30 text-muted-foreground hover:border-primary/40"
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                {cat.label}
+                <Badge variant={isActive ? "default" : "outline"} className="text-[10px] px-1.5 py-0 h-4 min-w-[1.25rem] justify-center">{count}</Badge>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {(creating || editingId) && (
+        <div className="p-5 border-b border-border bg-muted/20 space-y-3">
+          <h4 className="text-sm font-semibold text-foreground">{creating ? "New plan" : "Edit plan"}</h4>
+          <div className="grid md:grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-muted-foreground">Category</label>
+              <Select value={form.category_id} onValueChange={(v) => setForm({ ...form, category_id: v as ServicePlanRow["category_id"] })}>
+                <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {CATEGORIES.map((c) => <SelectItem key={c.id} value={c.id}>{c.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground">Sort order</label>
+              <Input type="number" value={form.sort_order} onChange={(e) => setForm({ ...form, sort_order: e.target.value })} className="h-9 text-sm" />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground">Plan name</label>
+              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Bronze" className="h-9 text-sm" />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground">Price</label>
+              <Input value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder="e.g. M499/mo" className="h-9 text-sm" />
+            </div>
+            <div className="md:col-span-2">
+              <label className="text-xs text-muted-foreground">Speed (optional)</label>
+              <Input value={form.speed} onChange={(e) => setForm({ ...form, speed: e.target.value })} placeholder="e.g. 30 Mbps ↓ / 20 Mbps ↑" className="h-9 text-sm" />
+            </div>
+            <div className="md:col-span-2">
+              <label className="text-xs text-muted-foreground">Features (one per line)</label>
+              <Textarea rows={3} value={form.details} onChange={(e) => setForm({ ...form, details: e.target.value })} placeholder="Integrated mobile data &amp; voice&#10;Home WiFi router included" className="text-sm" />
+            </div>
+          </div>
+          <div className="flex gap-2 justify-end">
+            <Button variant="outline" size="sm" onClick={cancel} className="gap-1"><X className="w-3.5 h-3.5" /> Cancel</Button>
+            <Button size="sm" onClick={save} className="gap-1"><Save className="w-3.5 h-3.5" /> Save</Button>
+          </div>
+        </div>
+      )}
+
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-border bg-muted/50">
+              <th className="px-4 py-3 text-left font-medium text-muted-foreground w-14">#</th>
+              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Name</th>
+              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Price</th>
+              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Speed</th>
+              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Features</th>
+              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
+              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr><td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">Loading…</td></tr>
+            ) : visiblePlans.length === 0 ? (
+              <tr><td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">No plans in this category yet.</td></tr>
+            ) : visiblePlans.map((p) => (
+              <tr key={p.id} className="border-b border-border hover:bg-muted/30">
+                <td className="px-4 py-3 text-muted-foreground">{p.sort_order}</td>
+                <td className="px-4 py-3 font-medium text-foreground">{p.name}</td>
+                <td className="px-4 py-3 text-foreground">{p.price}</td>
+                <td className="px-4 py-3 text-muted-foreground">{p.speed || "—"}</td>
+                <td className="px-4 py-3 text-xs text-muted-foreground max-w-xs">{(p.details || []).join(" • ") || "—"}</td>
+                <td className="px-4 py-3">
+                  {p.is_active
+                    ? <Badge className="bg-secondary text-secondary-foreground">Active</Badge>
+                    : <Badge variant="outline">Disabled</Badge>}
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => startEdit(p)} title="Edit"><Pencil className="w-3.5 h-3.5" /></Button>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => toggleActive(p)} title={p.is_active ? "Disable" : "Enable"}>
+                      {p.is_active ? <PowerOff className="w-3.5 h-3.5 text-amber-600" /> : <Power className="w-3.5 h-3.5 text-secondary" />}
+                    </Button>
+                    <ConfirmDialog onConfirm={() => deletePlan(p.id)} title="Delete plan?" description={`This will permanently delete the "${p.name}" plan.`} />
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
