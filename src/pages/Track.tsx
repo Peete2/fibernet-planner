@@ -17,6 +17,7 @@ const statusConfig: Record<string, { icon: typeof Clock; color: string }> = {
 const allStatuses = ["Submitted", "Site Survey", "Approved", "Installation Scheduled", "Completed"];
 
 interface AppResult {
+  id: string;
   ref_code: string;
   customer_name: string;
   service: string;
@@ -28,9 +29,17 @@ interface AppResult {
   created_at: string;
 }
 
+interface HistoryEntry {
+  status: string;
+  created_at: string;
+  changed_by_name: string | null;
+  note: string | null;
+}
+
 export default function Track() {
   const [query, setQuery] = useState("");
   const [result, setResult] = useState<AppResult | null>(null);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [notFound, setNotFound] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -41,20 +50,28 @@ export default function Track() {
     setLoading(true);
     setNotFound(false);
     setResult(null);
+    setHistory([]);
 
     const { data, error } = await supabase
       .from("applications")
-      .select("ref_code, customer_name, service, location, district, status, technician, scheduled_date, created_at")
+      .select("id, ref_code, customer_name, service, location, district, status, technician, scheduled_date, created_at")
       .eq("ref_code", query.trim().toUpperCase())
       .maybeSingle();
 
-    setLoading(false);
-
     if (error || !data) {
+      setLoading(false);
       setNotFound(true);
-    } else {
-      setResult(data);
+      return;
     }
+    setResult(data as AppResult);
+
+    const { data: hist } = await supabase
+      .from("application_status_history")
+      .select("status, created_at, changed_by_name, note")
+      .eq("application_id", (data as AppResult).id)
+      .order("created_at", { ascending: true });
+    setHistory((hist as HistoryEntry[]) || []);
+    setLoading(false);
   };
 
   const currentIndex = result ? allStatuses.indexOf(result.status) : -1;
@@ -133,6 +150,57 @@ export default function Track() {
                   <div><span className="text-muted-foreground">Scheduled:</span> <span className="text-foreground font-medium">{new Date(result.scheduled_date).toLocaleDateString()}</span></div>
                 )}
               </div>
+
+              {history.length > 0 && (
+                <div className="mt-8 pt-6 border-t border-border">
+                  <h3 className="text-sm font-display font-semibold text-foreground mb-4 uppercase tracking-wide">
+                    Status Timeline
+                  </h3>
+                  <ol className="relative border-l-2 border-border ml-3 space-y-5">
+                    {history.map((h, i) => {
+                      const cfg = statusConfig[h.status];
+                      const Icon = cfg?.icon || FileText;
+                      const isLatest = i === history.length - 1;
+                      const next = history[i + 1];
+                      const durationMs = next ? +new Date(next.created_at) - +new Date(h.created_at) : null;
+                      const durationLabel = durationMs
+                        ? durationMs < 36e5
+                          ? `${Math.round(durationMs / 6e4)}m`
+                          : durationMs < 864e5
+                          ? `${(durationMs / 36e5).toFixed(1)}h`
+                          : `${(durationMs / 864e5).toFixed(1)}d`
+                        : null;
+                      return (
+                        <li key={i} className="ml-6">
+                          <span
+                            className={`absolute -left-[13px] flex items-center justify-center w-6 h-6 rounded-full ring-4 ring-background ${
+                              cfg?.color || "bg-muted"
+                            }`}
+                          >
+                            <Icon className="w-3 h-3 text-primary-foreground" />
+                          </span>
+                          <div className="flex flex-wrap items-baseline gap-x-2">
+                            <p className="font-medium text-foreground text-sm">{h.status}</p>
+                            {isLatest && (
+                              <span className="text-[10px] uppercase tracking-wide text-secondary font-semibold">
+                                Current
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(h.created_at).toLocaleString()}
+                            {durationLabel && <span className="ml-2">• stayed {durationLabel}</span>}
+                          </p>
+                          {h.changed_by_name && (
+                            <p className="text-xs text-muted-foreground mt-0.5">by {h.changed_by_name}</p>
+                          )}
+                          {h.note && <p className="text-xs text-foreground mt-1">{h.note}</p>}
+                        </li>
+                      );
+                    })}
+                  </ol>
+                </div>
+              )}
             </motion.div>
           )}
         </motion.div>
