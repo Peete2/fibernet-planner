@@ -798,6 +798,11 @@ export default function Admin() {
               </div>
             </TabsContent>
 
+            {/* ========== FUNNEL & UTILIZATION ========== */}
+            <TabsContent value="funnel">
+              <AnalyticsPanel />
+            </TabsContent>
+
             {/* ========== PLAN ROUTES ========== */}
             <TabsContent value="plan">
               <div className="space-y-6">
