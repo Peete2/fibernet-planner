@@ -53,6 +53,44 @@ export type Database = {
         }
         Relationships: []
       }
+      application_status_history: {
+        Row: {
+          application_id: string
+          changed_by: string | null
+          changed_by_name: string | null
+          created_at: string
+          id: string
+          note: string | null
+          status: string
+        }
+        Insert: {
+          application_id: string
+          changed_by?: string | null
+          changed_by_name?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          status: string
+        }
+        Update: {
+          application_id?: string
+          changed_by?: string | null
+          changed_by_name?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_status_history_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       applications: {
         Row: {
           account_type: string

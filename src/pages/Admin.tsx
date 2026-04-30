@@ -18,6 +18,7 @@ import AdminUserManagement from "@/components/AdminUserManagement";
 import ServicePlansManager from "@/components/ServicePlansManager";
 import DocumentPreview from "@/components/DocumentPreview";
 import AuditLogPanel from "@/components/AuditLogPanel";
+import AnalyticsPanel from "@/components/AnalyticsPanel";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import Footer from "@/components/Footer";
 import PageSkeleton from "@/components/PageSkeleton";
@@ -403,6 +404,7 @@ export default function Admin() {
               <TabsTrigger value="applications" className="gap-1.5"><FileText className="w-4 h-4" />Applications</TabsTrigger>
               <TabsTrigger value="assign" className="gap-1.5"><UserCheck className="w-4 h-4" />Assign Technicians</TabsTrigger>
               <TabsTrigger value="analytics" className="gap-1.5"><BarChart3 className="w-4 h-4" />Analytics</TabsTrigger>
+              <TabsTrigger value="funnel" className="gap-1.5"><BarChart3 className="w-4 h-4" />Funnel</TabsTrigger>
               <TabsTrigger value="plan" className="gap-1.5"><Route className="w-4 h-4" />Plan Routes</TabsTrigger>
               <TabsTrigger value="nodes" className="gap-1.5"><Wifi className="w-4 h-4" />Manage Nodes</TabsTrigger>
               <TabsTrigger value="plans" className="gap-1.5"><Package className="w-4 h-4" />Service Plans</TabsTrigger>
@@ -794,6 +796,11 @@ export default function Admin() {
                   </ResponsiveContainer>
                 </div>
               </div>
+            </TabsContent>
+
+            {/* ========== FUNNEL & UTILIZATION ========== */}
+            <TabsContent value="funnel">
+              <AnalyticsPanel />
             </TabsContent>
 
             {/* ========== PLAN ROUTES ========== */}
