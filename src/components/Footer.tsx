@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Wifi } from "lucide-react";
+import econetLogo from "@/assets/econet-logo.jpg";
 
 export default function Footer() {
   return (
@@ -7,10 +7,7 @@ export default function Footer() {
       <div className="container mx-auto px-4">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-md bg-primary flex items-center justify-center">
-              <Wifi className="w-4 h-4 text-primary-foreground" />
-            </div>
-            <span className="font-display font-semibold text-sm text-foreground">ETL Fiber</span>
+            <img src={econetLogo} alt="Econet Telecom Lesotho" className="h-8 w-auto" />
           </div>
           <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
             <Link to="/coverage" className="hover:text-foreground transition-colors">Coverage</Link>
