@@ -5,6 +5,7 @@ import { Shield, Mail, Lock, User, Eye, EyeOff, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -18,6 +19,7 @@ export default function AdminLogin() {
     password: "",
     fullName: "",
     inviteCode: "",
+    role: "main_admin",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -32,6 +34,7 @@ export default function AdminLogin() {
             password: form.password,
             fullName: form.fullName,
             inviteCode: form.inviteCode,
+            role: form.role,
           },
         });
 
@@ -118,6 +121,30 @@ export default function AdminLogin() {
                     required
                   />
                 </div>
+              </div>
+
+              <div>
+                <Label htmlFor="role" className="text-foreground">
+                  Staff Role
+                </Label>
+                <Select
+                  value={form.role}
+                  onValueChange={(v) => setForm({ ...form, role: v })}
+                >
+                  <SelectTrigger id="role" className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="main_admin">Main Admin (full access)</SelectItem>
+                    <SelectItem value="moderator">Moderator — credit vetting</SelectItem>
+                    <SelectItem value="service_delivery">Service Delivery — advisory</SelectItem>
+                    <SelectItem value="technical">Technical — provisioning</SelectItem>
+                    <SelectItem value="billing">Billing — payments</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Role determines which dashboard and applications you'll see.
+                </p>
               </div>
             </>
           )}
