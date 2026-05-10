@@ -2,7 +2,15 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 
-type AppRole = "admin" | "customer" | "technician";
+export type AppRole =
+  | "admin"
+  | "main_admin"
+  | "moderator"
+  | "service_delivery"
+  | "technical"
+  | "billing"
+  | "customer"
+  | "technician";
 
 interface AuthContextType {
   user: User | null;
@@ -38,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       supabase.from("user_roles").select("role").eq("user_id", userId),
       supabase.from("profiles").select("full_name, email, phone, district, account_type").eq("user_id", userId).single(),
     ]);
-    if (rolesRes.data) setRoles(rolesRes.data.map((r) => r.role));
+    if (rolesRes.data) setRoles(rolesRes.data.map((r) => r.role as AppRole));
     if (profileRes.data) setProfile(profileRes.data);
   };
 

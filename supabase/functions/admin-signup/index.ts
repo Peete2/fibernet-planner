@@ -12,7 +12,16 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { email, password, fullName, inviteCode } = await req.json();
+    const { email, password, fullName, inviteCode, role } = await req.json();
+
+    const allowedRoles = [
+      "main_admin",
+      "moderator",
+      "service_delivery",
+      "technical",
+      "billing",
+    ];
+    const assignedRole = allowedRoles.includes(role) ? role : "main_admin";
 
     const expectedCode = Deno.env.get("ADMIN_INVITE_CODE");
     if (!expectedCode || inviteCode !== expectedCode) {
@@ -46,10 +55,16 @@ Deno.serve(async (req) => {
     const userId = authData.user.id;
 
     // The handle_new_user trigger creates profile + customer role automatically.
-    // Now add the admin role.
+    // Add the requested staff role (and legacy 'admin' alias when main_admin, for backward-compat RLS).
+    const rolesToAdd: { user_id: string; role: string }[] = [
+      { user_id: userId, role: assignedRole },
+    ];
+    if (assignedRole === "main_admin") {
+      rolesToAdd.push({ user_id: userId, role: "admin" });
+    }
     const { error: roleError } = await supabaseAdmin
       .from("user_roles")
-      .insert({ user_id: userId, role: "admin" });
+      .insert(rolesToAdd);
 
     if (roleError) {
       return new Response(
