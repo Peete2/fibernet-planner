@@ -53,6 +53,53 @@ export type Database = {
         }
         Relationships: []
       }
+      application_stage_actions: {
+        Row: {
+          action: string
+          actor_id: string | null
+          actor_name: string | null
+          actor_role: string | null
+          application_id: string
+          comment: string | null
+          created_at: string
+          from_stage: string
+          id: string
+          to_stage: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          actor_name?: string | null
+          actor_role?: string | null
+          application_id: string
+          comment?: string | null
+          created_at?: string
+          from_stage: string
+          id?: string
+          to_stage: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          actor_name?: string | null
+          actor_role?: string | null
+          application_id?: string
+          comment?: string | null
+          created_at?: string
+          from_stage?: string
+          id?: string
+          to_stage?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_stage_actions_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       application_status_history: {
         Row: {
           application_id: string
@@ -95,8 +142,12 @@ export type Database = {
         Row: {
           account_type: string
           address: string | null
+          advisory_note: string | null
           affirmation_letter_url: string | null
           applicant_role: string | null
+          assigned_equipment: Json | null
+          assigned_port: string | null
+          assigned_sim: string | null
           building_type: string | null
           created_at: string
           customer_name: string
@@ -111,11 +162,17 @@ export type Database = {
           national_id: string | null
           nearest_landmark: string | null
           notes: string | null
+          payment_amount: number | null
+          payment_method: string | null
+          payment_receipt_url: string | null
+          payment_reference: string | null
           phone: string | null
           preferred_date: string | null
           ref_code: string
+          rejection_reason: string | null
           scheduled_date: string | null
           service: string
+          stage: string
           status: string
           technician: string | null
           title: string | null
@@ -125,8 +182,12 @@ export type Database = {
         Insert: {
           account_type?: string
           address?: string | null
+          advisory_note?: string | null
           affirmation_letter_url?: string | null
           applicant_role?: string | null
+          assigned_equipment?: Json | null
+          assigned_port?: string | null
+          assigned_sim?: string | null
           building_type?: string | null
           created_at?: string
           customer_name: string
@@ -141,11 +202,17 @@ export type Database = {
           national_id?: string | null
           nearest_landmark?: string | null
           notes?: string | null
+          payment_amount?: number | null
+          payment_method?: string | null
+          payment_receipt_url?: string | null
+          payment_reference?: string | null
           phone?: string | null
           preferred_date?: string | null
           ref_code?: string
+          rejection_reason?: string | null
           scheduled_date?: string | null
           service: string
+          stage?: string
           status?: string
           technician?: string | null
           title?: string | null
@@ -155,8 +222,12 @@ export type Database = {
         Update: {
           account_type?: string
           address?: string | null
+          advisory_note?: string | null
           affirmation_letter_url?: string | null
           applicant_role?: string | null
+          assigned_equipment?: Json | null
+          assigned_port?: string | null
+          assigned_sim?: string | null
           building_type?: string | null
           created_at?: string
           customer_name?: string
@@ -171,11 +242,17 @@ export type Database = {
           national_id?: string | null
           nearest_landmark?: string | null
           notes?: string | null
+          payment_amount?: number | null
+          payment_method?: string | null
+          payment_receipt_url?: string | null
+          payment_reference?: string | null
           phone?: string | null
           preferred_date?: string | null
           ref_code?: string
+          rejection_reason?: string | null
           scheduled_date?: string | null
           service?: string
+          stage?: string
           status?: string
           technician?: string | null
           title?: string | null
@@ -402,12 +479,70 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      advance_application_stage: {
+        Args: {
+          _action: string
+          _app_id: string
+          _comment?: string
+          _patch?: Json
+        }
+        Returns: {
+          account_type: string
+          address: string | null
+          advisory_note: string | null
+          affirmation_letter_url: string | null
+          applicant_role: string | null
+          assigned_equipment: Json | null
+          assigned_port: string | null
+          assigned_sim: string | null
+          building_type: string | null
+          created_at: string
+          customer_name: string
+          district: string
+          document_url: string | null
+          email: string | null
+          floors: number | null
+          id: string
+          latitude: number | null
+          location: string | null
+          longitude: number | null
+          national_id: string | null
+          nearest_landmark: string | null
+          notes: string | null
+          payment_amount: number | null
+          payment_method: string | null
+          payment_receipt_url: string | null
+          payment_reference: string | null
+          phone: string | null
+          preferred_date: string | null
+          ref_code: string
+          rejection_reason: string | null
+          scheduled_date: string | null
+          service: string
+          stage: string
+          status: string
+          technician: string | null
+          title: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "applications"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      role_for_stage: {
+        Args: { _stage: string }
+        Returns: Database["public"]["Enums"]["app_role"]
       }
     }
     Enums: {
