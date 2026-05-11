@@ -1,11 +1,11 @@
 import { Navigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth, type AppRole } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 import type { ReactNode } from "react";
 
 interface ProtectedRouteProps {
   children: ReactNode;
-  requiredRole?: "admin" | "customer" | "technician";
+  requiredRole?: AppRole | AppRole[];
 }
 
 export default function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
@@ -21,12 +21,20 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
 
   if (!user) return <Navigate to="/login" replace />;
 
-  if (requiredRole && !hasRole(requiredRole)) {
+  const required = requiredRole
+    ? Array.isArray(requiredRole)
+      ? requiredRole
+      : [requiredRole]
+    : [];
+  const ok = required.length === 0 || required.some((r) => hasRole(r));
+  if (!ok) {
     return (
       <div className="pt-20 min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <h2 className="text-2xl font-display font-bold text-foreground mb-2">Access Denied</h2>
-          <p className="text-muted-foreground">You need the <strong>{requiredRole}</strong> role to access this page.</p>
+          <p className="text-muted-foreground">
+            You need one of these roles: <strong>{required.join(", ")}</strong>.
+          </p>
         </div>
       </div>
     );

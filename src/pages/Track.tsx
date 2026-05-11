@@ -1,10 +1,19 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Search, CheckCircle, Clock, Truck, ClipboardCheck, FileText } from "lucide-react";
+import { Search, CheckCircle, Clock, Truck, ClipboardCheck, FileText, Shield, Wrench, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import Footer from "@/components/Footer";
+import { STAGES, stageLabel } from "@/lib/stage-engine";
+
+const stageIcons: Record<string, typeof Clock> = {
+  moderation: Shield,
+  service_delivery: ClipboardCheck,
+  technical: Wrench,
+  billing: Receipt,
+  completed: CheckCircle,
+};
 
 const statusConfig: Record<string, { icon: typeof Clock; color: string }> = {
   Submitted: { icon: FileText, color: "bg-status-submitted" },
@@ -27,6 +36,8 @@ interface AppResult {
   technician: string | null;
   scheduled_date: string | null;
   created_at: string;
+  stage: string;
+  rejection_reason: string | null;
 }
 
 interface HistoryEntry {
@@ -54,7 +65,7 @@ export default function Track() {
 
     const { data, error } = await supabase
       .from("applications")
-      .select("id, ref_code, customer_name, service, location, district, status, technician, scheduled_date, created_at")
+      .select("id, ref_code, customer_name, service, location, district, status, technician, scheduled_date, created_at, stage, rejection_reason")
       .eq("ref_code", query.trim().toUpperCase())
       .maybeSingle();
 
@@ -75,6 +86,7 @@ export default function Track() {
   };
 
   const currentIndex = result ? allStatuses.indexOf(result.status) : -1;
+  const stageIndex = result ? STAGES.findIndex((s) => s.key === result.stage) : -1;
 
   return (
     <div className="pt-20 min-h-screen bg-background flex flex-col">
@@ -114,29 +126,47 @@ export default function Track() {
                   <p className="text-sm text-muted-foreground">Application ID</p>
                   <p className="text-xl font-display font-bold text-foreground">{result.ref_code}</p>
                 </div>
-                <div className={`px-3 py-1 rounded-full text-xs font-semibold text-primary-foreground ${statusConfig[result.status]?.color || "bg-muted"}`}>
-                  {result.status}
+                <div className="px-3 py-1 rounded-full text-xs font-semibold text-primary-foreground bg-secondary">
+                  {stageLabel(result.stage)}
                 </div>
               </div>
 
-              {/* Progress bar */}
-              <div className="flex items-center gap-1 mb-8">
-                {allStatuses.map((s, i) => {
-                  const active = i <= currentIndex;
-                  const cfg = statusConfig[s];
-                  const Icon = cfg.icon;
+              {/* Stage stepper */}
+              <div className="flex items-center gap-1 mb-6">
+                {STAGES.map((s, i) => {
+                  const active = i <= stageIndex;
+                  const Icon = stageIcons[s.key] || Clock;
                   return (
-                    <div key={s} className="flex-1 flex flex-col items-center">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${active ? cfg.color : "bg-muted"}`}>
-                        <Icon className={`w-4 h-4 ${active ? "text-primary-foreground" : "text-muted-foreground"}`} />
+                    <div key={s.key} className="flex-1 flex flex-col items-center">
+                      <div
+                        className={`w-9 h-9 rounded-full flex items-center justify-center ${
+                          active ? "bg-secondary" : "bg-muted"
+                        }`}
+                      >
+                        <Icon
+                          className={`w-4 h-4 ${
+                            active ? "text-primary-foreground" : "text-muted-foreground"
+                          }`}
+                        />
                       </div>
-                      <p className={`text-[10px] mt-1 text-center ${active ? "text-foreground font-medium" : "text-muted-foreground"}`}>
-                        {s}
+                      <p
+                        className={`text-[10px] mt-1 text-center ${
+                          active ? "text-foreground font-medium" : "text-muted-foreground"
+                        }`}
+                      >
+                        {s.label}
                       </p>
                     </div>
                   );
                 })}
               </div>
+
+              {result.rejection_reason && result.stage !== "completed" && (
+                <div className="mb-6 p-3 rounded-md bg-destructive/10 border border-destructive/30 text-xs text-destructive">
+                  <span className="font-semibold">Action needed: </span>
+                  {result.rejection_reason}
+                </div>
+              )}
 
               <div className="grid sm:grid-cols-2 gap-4 text-sm">
                 <div><span className="text-muted-foreground">Customer:</span> <span className="text-foreground font-medium">{result.customer_name}</span></div>

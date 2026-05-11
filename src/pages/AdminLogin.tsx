@@ -45,13 +45,28 @@ export default function AdminLogin() {
         setIsSignUp(false);
         setForm({ ...form, inviteCode: "", password: "" });
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data: signInData, error } = await supabase.auth.signInWithPassword({
           email: form.email,
           password: form.password,
         });
         if (error) throw error;
         toast.success("Welcome, Admin!");
-        navigate("/admin");
+        const uid = signInData.user?.id;
+        let target = "/admin";
+        if (uid) {
+          const { data: rolesData } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", uid);
+          const roles = (rolesData || []).map((r: any) => r.role);
+          if (roles.includes("main_admin") || roles.includes("admin")) target = "/admin";
+          else if (roles.includes("moderator")) target = "/moderator";
+          else if (roles.includes("service_delivery")) target = "/service-delivery";
+          else if (roles.includes("technical")) target = "/technical";
+          else if (roles.includes("billing")) target = "/billing";
+          else if (roles.includes("technician")) target = "/tech";
+        }
+        navigate(target);
       }
     } catch (err: any) {
       toast.error(err.message || "Authentication failed");
