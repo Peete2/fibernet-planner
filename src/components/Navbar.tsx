@@ -24,7 +24,11 @@ export default function Navbar() {
     ...publicLinks,
     ...(user ? [{ to: "/dashboard", label: "My Apps" }] : []),
     ...(user && hasRole("technician") ? [{ to: "/tech", label: "Tech Jobs" }] : []),
-    ...(user && hasRole("admin") ? [{ to: "/admin", label: "Admin" }] : []),
+    ...(user && (hasRole("main_admin") || hasRole("admin")) ? [{ to: "/admin", label: "Admin" }] : []),
+    ...(user && hasRole("moderator") ? [{ to: "/moderator", label: "Moderator" }] : []),
+    ...(user && hasRole("service_delivery") ? [{ to: "/service-delivery", label: "Service Delivery" }] : []),
+    ...(user && hasRole("technical") ? [{ to: "/technical", label: "Technical" }] : []),
+    ...(user && hasRole("billing") ? [{ to: "/billing", label: "Billing" }] : []),
     ...(user ? [{ to: "/profile", label: "Profile" }] : []),
     ...(!user ? [{ to: "/admin-login", label: "Admin Login" }] : []),
   ];
