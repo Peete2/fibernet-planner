@@ -16,6 +16,10 @@ import Login from "./pages/Login";
 import AdminLogin from "./pages/AdminLogin";
 import Dashboard from "./pages/Dashboard";
 import TechDashboard from "./pages/TechDashboard";
+import ModeratorDashboard from "./pages/ModeratorDashboard";
+import ServiceDeliveryDashboard from "./pages/ServiceDeliveryDashboard";
+import TechnicalDashboard from "./pages/TechnicalDashboard";
+import BillingDashboard from "./pages/BillingDashboard";
 import Profile from "./pages/Profile";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
@@ -55,8 +59,40 @@ const App = () => (
             <Route
               path="/admin"
               element={
-                <ProtectedRoute requiredRole="admin">
+                <ProtectedRoute requiredRole={["main_admin", "admin"]}>
                   <Admin />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/moderator"
+              element={
+                <ProtectedRoute requiredRole={["moderator", "main_admin", "admin"]}>
+                  <ModeratorDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/service-delivery"
+              element={
+                <ProtectedRoute requiredRole={["service_delivery", "main_admin", "admin"]}>
+                  <ServiceDeliveryDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/technical"
+              element={
+                <ProtectedRoute requiredRole={["technical", "main_admin", "admin"]}>
+                  <TechnicalDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/billing"
+              element={
+                <ProtectedRoute requiredRole={["billing", "main_admin", "admin"]}>
+                  <BillingDashboard />
                 </ProtectedRoute>
               }
             />
