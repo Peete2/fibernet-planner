@@ -8,12 +8,14 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import MathCaptcha from "@/components/MathCaptcha";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [captchaOk, setCaptchaOk] = useState(false);
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -24,6 +26,10 @@ export default function AdminLogin() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSignUp && !captchaOk) {
+      toast.error("Please solve the verification challenge.");
+      return;
+    }
     setLoading(true);
 
     try {
@@ -161,6 +167,7 @@ export default function AdminLogin() {
                   Role determines which dashboard and applications you'll see.
                 </p>
               </div>
+              <MathCaptcha onValidChange={setCaptchaOk} />
             </>
           )}
 

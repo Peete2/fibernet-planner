@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import Footer from "@/components/Footer";
+import MathCaptcha from "@/components/MathCaptcha";
 
 const buildingTypes = [
   { value: "residential", label: "Residential House" },
@@ -60,6 +61,7 @@ export default function Apply() {
   const [detecting, setDetecting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submittedRef, setSubmittedRef] = useState<string | null>(null);
+  const [captchaOk, setCaptchaOk] = useState(false);
   const [idFile, setIdFile] = useState<File | null>(null);
   const [letterFile, setLetterFile] = useState<File | null>(null);
   const idInputRef = useRef<HTMLInputElement>(null);
@@ -113,6 +115,10 @@ export default function Apply() {
     e.preventDefault();
     if (!form.name || !form.service || !form.district) {
       toast.error("Please fill all required fields");
+      return;
+    }
+    if (!captchaOk) {
+      toast.error("Please solve the verification challenge to confirm you're human.");
       return;
     }
     if (cat === "fwa" && !form.applicantRole) {
@@ -467,7 +473,9 @@ export default function Apply() {
               </>
             )}
 
-            <Button type="submit" size="lg" className="w-full" disabled={submitting || uploading}>
+            <MathCaptcha onValidChange={setCaptchaOk} />
+
+            <Button type="submit" size="lg" className="w-full" disabled={submitting || uploading || !captchaOk}>
               {submitting ? (uploading ? "Uploading document..." : "Submitting...") : "Submit Application"}
             </Button>
           </form>

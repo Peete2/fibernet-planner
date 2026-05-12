@@ -12,6 +12,12 @@ export default function ServiceDeliveryDashboard() {
       description="Validate feasibility & attach an advisory note before passing to Technical."
       approveLabel="Approve & send to Technical"
       rejectLabel="Send back to Moderator"
+      reminderTasks={[
+        "Check coverage / feasibility for the requested address",
+        "Recommend the most suitable plan tier in the advisory note",
+        "Flag any special access or permit requirements",
+        "Forward to Technical or send back with a clear reason",
+      ]}
       requireApproveComment={false}
       buildApprovePatch={(a) => {
         const note = (notes[a.id] || a.advisory_note || "").trim();
