@@ -19,6 +19,7 @@ import ServicePlansManager from "@/components/ServicePlansManager";
 import DocumentPreview from "@/components/DocumentPreview";
 import AuditLogPanel from "@/components/AuditLogPanel";
 import AnalyticsPanel from "@/components/AnalyticsPanel";
+import StagePerformancePanel from "@/components/StagePerformancePanel";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import Footer from "@/components/Footer";
 import PageSkeleton from "@/components/PageSkeleton";
@@ -453,6 +454,16 @@ export default function Admin() {
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
+              </div>
+
+              <div className="mt-8">
+                <h3 className="font-display font-semibold text-foreground mb-3">Staff Performance — All Roles</h3>
+                {(["moderation","service_delivery","technical","billing"] as const).map((s) => (
+                  <div key={s} className="mb-4">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">{s.replace("_"," ")}</p>
+                    <StagePerformancePanel stage={s} scope="all" />
+                  </div>
+                ))}
               </div>
             </TabsContent>
 
