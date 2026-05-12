@@ -10,6 +10,12 @@ export default function ModeratorDashboard() {
       description="Credit-vet incoming applications and forward to Service Delivery."
       approveLabel="Approve & send to Service Delivery"
       rejectLabel="Reject (return to customer)"
+      reminderTasks={[
+        "Verify National ID document is legible and matches applicant",
+        "Confirm phone, email and physical address are present",
+        "For schools/businesses, validate the affirmation letter",
+        "Approve or send back each waiting application with a reason",
+      ]}
       headerExtra={<CreateApplicationDialog onCreated={() => window.location.reload()} />}
       renderDetail={(a) => (
         <div className="space-y-3">

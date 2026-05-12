@@ -22,6 +22,12 @@ export default function TechnicalDashboard() {
       description="Assign assets and field technician, then forward to Billing."
       approveLabel="Approve & send to Billing"
       rejectLabel="Send back to Service Delivery"
+      reminderTasks={[
+        "Assign a SIM and port number from available stock",
+        "List all equipment to be installed",
+        "Schedule a field technician and installation date",
+        "Send to Billing once provisioning is fully captured",
+      ]}
       buildApprovePatch={(a) => {
         const d = data[a.id];
         if (!d?.sim?.trim() || !d?.port?.trim()) {
