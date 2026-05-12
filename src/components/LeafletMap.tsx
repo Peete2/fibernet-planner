@@ -79,10 +79,21 @@ export default function LeafletMap({
     );
     satelliteTileRef.current = satelliteTile;
 
+    // Google Hybrid (satellite + labels/roads)
+    const googleHybrid = L.tileLayer(
+      "https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
+      {
+        subdomains: ["0", "1", "2", "3"],
+        attribution: "&copy; Google",
+        maxZoom: 20,
+      }
+    );
+
     // Layer control
     const baseMaps: Record<string, L.TileLayer> = {
       "🗺️ Street": darkTile,
       "🛰️ Satellite": satelliteTile,
+      "🌐 Google Hybrid": googleHybrid,
     };
     L.control.layers(baseMaps, {}, { position: "topright" }).addTo(map);
 
@@ -172,6 +183,57 @@ export default function LeafletMap({
     if (onMapClick) {
       map.on("click", (e: L.LeafletMouseEvent) => {
         onMapClick(e.latlng.lat, e.latlng.lng);
+      });
+    } else {
+      // Customer-facing: clicking the map performs an instant coverage check
+      map.on("click", async (e: L.LeafletMouseEvent) => {
+        const { lat, lng } = e.latlng;
+        const { data: nodes } = await supabase.from("fiber_nodes").select("*");
+        let nearest: any = null;
+        let nearestDist = Infinity;
+        (nodes || []).forEach((n) => {
+          const d = haversineDistance(lat, lng, n.latitude, n.longitude);
+          if (d < nearestDist) {
+            nearestDist = d;
+            nearest = n;
+          }
+        });
+        let html: string;
+        if (!nearest) {
+          html = `<div style="font-family:Inter,sans-serif;min-width:220px">
+            <strong>📍 Coverage check</strong>
+            <hr style="border-color:#334155;margin:6px 0"/>
+            <div style="font-size:12px">No access points configured yet — please contact ETL.</div>
+          </div>`;
+        } else {
+          const within = nearestDist <= (nearest.radius_km || 0);
+          const isFull = nearest.connected_customers >= nearest.capacity;
+          const eligible = within && nearest.status === "Active" && !isFull;
+          const verdict = eligible
+            ? `<span style="color:#10b981;font-weight:600">✅ Fiber available at this location</span>`
+            : within && isFull
+              ? `<span style="color:#f59e0b;font-weight:600">⚠️ Nearest AP is full — join waitlist</span>`
+              : within && nearest.status !== "Active"
+                ? `<span style="color:#6366f1;font-weight:600">🛠️ Coverage planned, not active yet</span>`
+                : `<span style="color:#ef4444;font-weight:600">❌ Outside coverage radius</span>`;
+          html = `<div style="font-family:Inter,sans-serif;min-width:240px">
+            <strong style="font-size:14px">📍 Coverage check</strong>
+            <hr style="border-color:#334155;margin:6px 0"/>
+            <div style="font-size:12px;line-height:1.7">
+              ${verdict}<br/>
+              Nearest AP: <strong>${nearest.name}</strong><br/>
+              Distance: <strong>${nearestDist.toFixed(2)} km</strong> (radius ${nearest.radius_km} km)<br/>
+              Capacity: ${nearest.connected_customers}/${nearest.capacity}
+              <div style="margin-top:8px">
+                <a href="/apply" style="background:hsl(220 70% 18%);color:#fff;padding:6px 10px;border-radius:6px;text-decoration:none;display:inline-block">Apply for service</a>
+              </div>
+            </div>
+          </div>`;
+        }
+        L.popup({ maxWidth: 300 })
+          .setLatLng([lat, lng])
+          .setContent(html)
+          .openOn(map);
       });
     }
 
