@@ -21,6 +21,12 @@ export default function BillingDashboard() {
       approveLabel="Confirm payment & complete"
       rejectLabel="Send back to Technical"
       rejectReasons={["Payment details missing", "No payment received"]}
+      reminderTasks={[
+        "Confirm payment method, reference and amount match the receipt",
+        "Attach a receipt URL where available",
+        "Mark complete only when payment is fully verified",
+        "Send back to Technical with reason if anything is missing",
+      ]}
       buildApprovePatch={(a) => {
         const d = data[a.id];
         if (!d?.method?.trim() || !d?.reference?.trim() || !d?.amount?.trim()) {
