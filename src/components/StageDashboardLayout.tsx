@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { advanceStage, stageLabel, type Stage } from "@/lib/stage-engine";
 import Footer from "@/components/Footer";
+import RoleReminder from "@/components/RoleReminder";
+import StagePerformancePanel from "@/components/StagePerformancePanel";
 
 export interface StageApp {
   id: string;
@@ -46,6 +48,8 @@ interface Props {
   description: string;
   approveLabel: string;
   rejectLabel: string;
+  /** Checklist of repeating duties for this role (shown in the 3-min reminder). */
+  reminderTasks?: string[];
   /** Render stage-specific detail panel content (above the action bar). */
   renderDetail?: (app: StageApp) => ReactNode;
   /** Build the patch payload sent to advance_application_stage on approve. Return null to block. */
@@ -71,6 +75,7 @@ export default function StageDashboardLayout({
   renderDetail,
   buildApprovePatch,
   headerExtra,
+  reminderTasks = [],
   requireApproveComment = false,
   canApprove = true,
   canReject = true,
@@ -187,6 +192,11 @@ export default function StageDashboardLayout({
               {headerExtra}
             </div>
           </div>
+
+          <StagePerformancePanel stage={stage} scope="self" />
+          {reminderTasks.length > 0 && (
+            <RoleReminder role={title} tasks={reminderTasks} pendingCount={apps.length} />
+          )}
 
           <div className="grid lg:grid-cols-[320px_1fr] gap-4">
             {/* Queue */}
