@@ -261,6 +261,60 @@ export type Database = {
         }
         Relationships: []
       }
+      customer_connections: {
+        Row: {
+          application_id: string | null
+          created_at: string
+          created_by: string | null
+          customer_name: string
+          fiber_node_id: string
+          id: string
+          latitude: number
+          longitude: number
+          source: string
+          user_id: string | null
+        }
+        Insert: {
+          application_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_name: string
+          fiber_node_id: string
+          id?: string
+          latitude: number
+          longitude: number
+          source?: string
+          user_id?: string | null
+        }
+        Update: {
+          application_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_name?: string
+          fiber_node_id?: string
+          id?: string
+          latitude?: number
+          longitude?: number
+          source?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_connections_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_connections_fiber_node_id_fkey"
+            columns: ["fiber_node_id"]
+            isOneToOne: false
+            referencedRelation: "fiber_nodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fiber_nodes: {
         Row: {
           capacity: number
