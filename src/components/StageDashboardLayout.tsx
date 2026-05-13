@@ -10,7 +10,7 @@ import { advanceStage, stageLabel, type Stage } from "@/lib/stage-engine";
 import Footer from "@/components/Footer";
 import RoleReminder from "@/components/RoleReminder";
 import StagePerformancePanel from "@/components/StagePerformancePanel";
-import { generateApplicationPDF, detectCategory } from "@/lib/pdf-generator";
+import { generateApplicationPDF } from "@/lib/pdf-generator";
 
 export interface StageApp {
   id: string;
@@ -195,8 +195,7 @@ export default function StageDashboardLayout({
 
   const downloadApplicationForm = (a: StageApp) => {
     try {
-      const cat = detectCategory(a.service);
-      generateApplicationPDF(a as any, cat);
+      generateApplicationPDF(a as any);
     } catch (e: any) {
       toast.error(e.message || "Could not generate PDF");
     }
