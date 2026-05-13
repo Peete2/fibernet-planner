@@ -26,6 +26,7 @@ import PageSkeleton from "@/components/PageSkeleton";
 import AISuggestionsPanel from "@/components/AISuggestionsPanel";
 import { generateApplicationPDF, detectCategory, categoryLabels, type ServiceCategory } from "@/lib/pdf-generator";
 import { logAudit } from "@/lib/audit";
+import * as XLSX from "xlsx";
 
 const statusColors: Record<string, string> = {
   Submitted: "hsl(45 90% 50%)",
@@ -338,22 +339,18 @@ export default function Admin() {
   const exportApplicationsCSV = () => {
     if (filteredApps.length === 0) { toast.error("No applications to export"); return; }
     const headers = ["Ref", "Customer", "Title", "Service", "District", "Location", "Status", "Technician", "Scheduled", "Created"];
-    const escape = (v: any) => {
-      const s = v == null ? "" : String(v);
-      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-    };
     const rows = filteredApps.map((a) => [
       a.ref_code, a.customer_name, a.title || "", a.service, a.district, a.location || "",
       a.status, a.technician || "", a.scheduled_date || "", new Date(a.created_at).toISOString().slice(0, 10),
-    ].map(escape).join(","));
-    const csv = [headers.join(","), ...rows].join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `applications-${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    ]);
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+    // Auto column widths
+    ws["!cols"] = headers.map((h, i) => ({
+      wch: Math.min(40, Math.max(h.length, ...rows.map((r) => String(r[i] ?? "").length)) + 2),
+    }));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Applications");
+    XLSX.writeFile(wb, `applications-${new Date().toISOString().slice(0, 10)}.xlsx`);
     toast.success(`Exported ${filteredApps.length} application${filteredApps.length === 1 ? "" : "s"}`);
   };
 
