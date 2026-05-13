@@ -34,7 +34,6 @@ export default function AdminUserManagement() {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
-  const [deleting, setDeleting] = useState<UserProfile | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const fetchUsers = async () => {
@@ -99,7 +98,6 @@ export default function AdminUserManagement() {
       body: { user_id: target.user_id },
     });
     setBusyId(null);
-    setDeleting(null);
     if (error || (data as any)?.error) {
       toast.error((data as any)?.error || error?.message || "Failed to delete user");
       return;
@@ -200,16 +198,22 @@ export default function AdminUserManagement() {
                         ))}
                       </div>
                     )}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      disabled={u.user_id === user?.id || busyId === u.user_id}
-                      className="h-6 text-[10px] text-destructive px-1 mt-1"
-                      onClick={() => setDeleting(u)}
-                      title={u.user_id === user?.id ? "You cannot delete yourself" : "Delete user"}
-                    >
-                      <Trash2 className="w-3 h-3 mr-1" /> Delete user
-                    </Button>
+                    {u.user_id !== user?.id && (
+                      <ConfirmDialog
+                        title="Delete user permanently?"
+                        description={`This removes ${u.full_name || u.email} from the system, including their roles and profile. This cannot be undone.`}
+                        onConfirm={() => deleteUser(u)}
+                      >
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={busyId === u.user_id}
+                          className="h-6 text-[10px] text-destructive px-1 mt-1"
+                        >
+                          <Trash2 className="w-3 h-3 mr-1" /> Delete user
+                        </Button>
+                      </ConfirmDialog>
+                    )}
                   </td>
                 </tr>
               );
@@ -220,15 +224,6 @@ export default function AdminUserManagement() {
           </tbody>
         </table>
       </div>
-      <ConfirmDialog
-        open={!!deleting}
-        onOpenChange={(o) => !o && setDeleting(null)}
-        title="Delete user permanently?"
-        description={deleting ? `This removes ${deleting.full_name || deleting.email} from the system, including their roles and profile. This cannot be undone.` : ""}
-        confirmText="Delete user"
-        destructive
-        onConfirm={() => deleting && deleteUser(deleting)}
-      />
     </div>
   );
 }
