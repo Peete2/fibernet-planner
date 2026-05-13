@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { Search, Shield, UserRound, School, Building2 } from "lucide-react";
+import { Search, Shield, UserRound, School, Building2, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import ConfirmDialog from "@/components/ConfirmDialog";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface UserProfile {
   user_id: string;
@@ -17,7 +19,7 @@ interface UserProfile {
   roles: string[];
 }
 
-const roleOptions = ["admin", "customer", "technician"] as const;
+const roleOptions = ["main_admin", "moderator", "service_delivery", "technical", "billing", "technician", "customer", "admin"] as const;
 
 const accountTypeIcons: Record<string, typeof UserRound> = {
   individual: UserRound,
@@ -26,11 +28,13 @@ const accountTypeIcons: Record<string, typeof UserRound> = {
 };
 
 export default function AdminUserManagement() {
+  const { user } = useAuth();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [busyId, setBusyId] = useState<string | null>(null);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -86,6 +90,20 @@ export default function AdminUserManagement() {
       toast.success(`Role "${role}" removed`);
       fetchUsers();
     }
+  };
+
+  const deleteUser = async (target: UserProfile) => {
+    setBusyId(target.user_id);
+    const { data, error } = await supabase.functions.invoke("delete-user", {
+      body: { user_id: target.user_id },
+    });
+    setBusyId(null);
+    if (error || (data as any)?.error) {
+      toast.error((data as any)?.error || error?.message || "Failed to delete user");
+      return;
+    }
+    toast.success(`Deleted ${target.full_name || target.email}`);
+    fetchUsers();
   };
 
   const filtered = users.filter((u) => {
@@ -179,6 +197,22 @@ export default function AdminUserManagement() {
                           </Button>
                         ))}
                       </div>
+                    )}
+                    {u.user_id !== user?.id && (
+                      <ConfirmDialog
+                        title="Delete user permanently?"
+                        description={`This removes ${u.full_name || u.email} from the system, including their roles and profile. This cannot be undone.`}
+                        onConfirm={() => deleteUser(u)}
+                      >
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={busyId === u.user_id}
+                          className="h-6 text-[10px] text-destructive px-1 mt-1"
+                        >
+                          <Trash2 className="w-3 h-3 mr-1" /> Delete user
+                        </Button>
+                      </ConfirmDialog>
                     )}
                   </td>
                 </tr>

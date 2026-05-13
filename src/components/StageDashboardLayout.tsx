@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { motion } from "framer-motion";
-import { Loader2, Inbox, ArrowRight, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { Loader2, Inbox, ArrowRight, ArrowLeft, CheckCircle2, FileDown, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,6 +10,7 @@ import { advanceStage, stageLabel, type Stage } from "@/lib/stage-engine";
 import Footer from "@/components/Footer";
 import RoleReminder from "@/components/RoleReminder";
 import StagePerformancePanel from "@/components/StagePerformancePanel";
+import { generateApplicationPDF } from "@/lib/pdf-generator";
 
 export interface StageApp {
   id: string;
@@ -176,6 +177,30 @@ export default function StageDashboardLayout({
     }
   };
 
+  const downloadDoc = async (path: string, label: string) => {
+    const { data, error } = await supabase.storage
+      .from("fwa-documents")
+      .createSignedUrl(path, 300, { download: true });
+    if (error || !data?.signedUrl) {
+      toast.error("Could not generate download link");
+      return;
+    }
+    const a = document.createElement("a");
+    a.href = data.signedUrl;
+    a.download = `${label}-${path.split("/").pop()}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
+  const downloadApplicationForm = (a: StageApp) => {
+    try {
+      generateApplicationPDF(a as any);
+    } catch (e: any) {
+      toast.error(e.message || "Could not generate PDF");
+    }
+  };
+
   return (
     <div className="pt-20 min-h-screen bg-background flex flex-col">
       <div className="container mx-auto px-4 py-6 flex-1">
@@ -277,6 +302,28 @@ export default function StageDashboardLayout({
                       {selected.rejection_reason}
                     </div>
                   )}
+
+                  {/* Document downloads */}
+                  <div className="flex flex-wrap gap-2 border-t border-dashed border-border pt-3">
+                    <Button size="sm" variant="outline" onClick={() => downloadApplicationForm(selected)}>
+                      <FileDown className="w-4 h-4 mr-1" /> Application form (PDF)
+                    </Button>
+                    {selected.document_url && (
+                      <Button size="sm" variant="outline" onClick={() => downloadDoc(selected.document_url!, "id-document")}>
+                        <Download className="w-4 h-4 mr-1" /> ID / supporting doc
+                      </Button>
+                    )}
+                    {selected.affirmation_letter_url && (
+                      <Button size="sm" variant="outline" onClick={() => downloadDoc(selected.affirmation_letter_url!, "affirmation-letter")}>
+                        <Download className="w-4 h-4 mr-1" /> Affirmation letter
+                      </Button>
+                    )}
+                    {selected.payment_receipt_url && (
+                      <Button size="sm" variant="outline" onClick={() => downloadDoc(selected.payment_receipt_url!, "payment-receipt")}>
+                        <Download className="w-4 h-4 mr-1" /> Payment receipt
+                      </Button>
+                    )}
+                  </div>
 
                   {renderDetail?.(selected)}
 

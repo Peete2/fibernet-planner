@@ -32,12 +32,18 @@ export default function ResetPassword() {
     return () => subscription.unsubscribe();
   }, []);
 
+  const validate = (pw: string): string | null => {
+    if (pw.length < 8) return "Password must be at least 8 characters";
+    if (!/[A-Z]/.test(pw)) return "Add at least one uppercase letter";
+    if (!/[a-z]/.test(pw)) return "Add at least one lowercase letter";
+    if (!/[0-9]/.test(pw)) return "Add at least one number";
+    return null;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 6) {
-      toast.error("Password must be at least 6 characters");
-      return;
-    }
+    const issue = validate(password);
+    if (issue) { toast.error(issue); return; }
     if (password !== confirmPassword) {
       toast.error("Passwords do not match");
       return;
@@ -93,7 +99,7 @@ export default function ResetPassword() {
                 placeholder="••••••••"
                 className="pl-10 pr-10"
                 required
-                minLength={6}
+                minLength={8}
               />
               <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -113,7 +119,7 @@ export default function ResetPassword() {
                 placeholder="••••••••"
                 className="pl-10"
                 required
-                minLength={6}
+                minLength={8}
               />
             </div>
           </div>
