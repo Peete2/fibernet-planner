@@ -472,7 +472,7 @@ export default function Admin() {
                     <h3 className="font-display font-semibold text-foreground">All Applications ({filteredApps.length}{filteredApps.length !== applications.length ? ` of ${applications.length}` : ""})</h3>
                     <div className="flex gap-2">
                       <Button variant="outline" size="sm" onClick={exportApplicationsCSV} className="gap-1.5">
-                        <Download className="w-4 h-4" /> Export CSV
+                        <Download className="w-4 h-4" /> Export Excel
                       </Button>
                       <CreateApplicationDialog onCreated={fetchData} />
                     </div>
