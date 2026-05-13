@@ -142,6 +142,30 @@ export default function LeafletMap({
             )
             .addTo(nodesLayer);
         });
+
+        // Render customers connected to APs as small dots
+        const { data: conns } = await supabase
+          .from("customer_connections")
+          .select("id, customer_name, latitude, longitude, source");
+        conns?.forEach((c) => {
+          const color = c.source === "auto" ? "#10b981" : "#a78bfa";
+          L.circleMarker([c.latitude, c.longitude], {
+            radius: 4,
+            fillColor: color,
+            color: "#0f172a",
+            weight: 1,
+            opacity: 1,
+            fillOpacity: 0.95,
+          })
+            .bindPopup(
+              `<div style="font-family:Inter,sans-serif;min-width:160px">
+                <strong>👤 ${c.customer_name}</strong>
+                <hr style="border-color:#334155;margin:4px 0"/>
+                <div style="font-size:11px">Connected customer<br/>Source: ${c.source}</div>
+              </div>`
+            )
+            .addTo(nodesLayer);
+        });
       }
 
       if (showRoutes) {
