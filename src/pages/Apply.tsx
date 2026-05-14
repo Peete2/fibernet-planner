@@ -16,6 +16,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import Footer from "@/components/Footer";
 import MathCaptcha from "@/components/MathCaptcha";
+import { checkFiberAvailability, isFiberServiceLabel } from "@/lib/service-eligibility";
 
 const buildingTypes = [
   { value: "residential", label: "Residential House" },
@@ -124,6 +125,31 @@ export default function Apply() {
     if (cat === "fwa" && !form.applicantRole) {
       toast.error("Please select whether you are a student or teacher");
       return;
+    }
+
+    if (isFiberServiceLabel(form.service)) {
+      const latitude = Number.parseFloat(form.latitude);
+      const longitude = Number.parseFloat(form.longitude);
+
+      if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+        toast.error("Fibre applications need GPS coordinates so we can check coverage.");
+        return;
+      }
+
+      try {
+        const availability = await checkFiberAvailability(latitude, longitude);
+        if (!availability.available) {
+          toast.error(
+            availability.nearestNodeName
+              ? `Fibre is not available here yet. Try Wi‑Fi PLUS, Fixed LTE, or Limited Wi‑Fi instead.`
+              : "Fibre is not available here yet. Please choose another service."
+          );
+          return;
+        }
+      } catch (error: any) {
+        toast.error(error.message || "Could not confirm fibre coverage right now");
+        return;
+      }
     }
 
     setSubmitting(true);

@@ -17,11 +17,19 @@ export default function ResetPassword() {
   const [isRecovery, setIsRecovery] = useState(false);
 
   useEffect(() => {
-    // Check for recovery token in URL hash
-    const hash = window.location.hash;
-    if (hash.includes("type=recovery")) {
-      setIsRecovery(true);
-    }
+    const hasRecoveryMarker = () => {
+      const hash = window.location.hash;
+      const search = window.location.search;
+      return hash.includes("type=recovery") || search.includes("type=recovery");
+    };
+
+    if (hasRecoveryMarker()) setIsRecovery(true);
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user && hasRecoveryMarker()) {
+        setIsRecovery(true);
+      }
+    });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
@@ -54,6 +62,7 @@ export default function ResetPassword() {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
       toast.success("Password updated successfully!");
+      await supabase.auth.signOut();
       navigate("/");
     } catch (err: any) {
       toast.error(err.message || "Failed to update password");

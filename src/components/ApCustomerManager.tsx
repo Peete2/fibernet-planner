@@ -3,8 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Trash2, UserPlus, MapPin } from "lucide-react";
+import LeafletMap from "@/components/LeafletMap";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Node { id: string; name: string; latitude: number; longitude: number; capacity: number; connected_customers: number; }
 interface Conn {
@@ -13,6 +16,7 @@ interface Conn {
 }
 
 export default function ApCustomerManager() {
+  const { user } = useAuth();
   const [nodes, setNodes] = useState<Node[]>([]);
   const [conns, setConns] = useState<Conn[]>([]);
   const [selectedNode, setSelectedNode] = useState<string>("");
@@ -46,6 +50,7 @@ export default function ApCustomerManager() {
       latitude: useLat,
       longitude: useLng,
       source: "manual",
+      created_by: user?.id ?? null,
     });
     setBusy(false);
     if (error) { toast.error(error.message); return; }
@@ -83,6 +88,24 @@ export default function ApCustomerManager() {
         <Input placeholder="Latitude (optional)" value={lat} onChange={(e) => setLat(e.target.value)} className="h-9 text-sm" />
         <Input placeholder="Longitude (optional)" value={lng} onChange={(e) => setLng(e.target.value)} className="h-9 text-sm" />
         <Button onClick={attach} disabled={busy} className="h-9"><UserPlus className="w-4 h-4 mr-1" /> Attach</Button>
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          <Label className="text-xs uppercase tracking-wide text-muted-foreground">Pick customer house on the map</Label>
+          <span className="text-xs text-muted-foreground">You can still type coordinates manually as well.</span>
+        </div>
+        <LeafletMap
+          showHeatmap={false}
+          showRoutes={true}
+          showNodes={true}
+          height="320px"
+          onMapClick={(latitude, longitude) => {
+            setLat(latitude.toFixed(6));
+            setLng(longitude.toFixed(6));
+            toast.success("Customer location selected from map");
+          }}
+        />
       </div>
 
       <div className="overflow-x-auto">
