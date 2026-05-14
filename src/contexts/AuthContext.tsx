@@ -46,28 +46,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       supabase.from("user_roles").select("role").eq("user_id", userId),
       supabase.from("profiles").select("full_name, email, phone, district, account_type").eq("user_id", userId).single(),
     ]);
-    if (rolesRes.data) setRoles(rolesRes.data.map((r) => r.role as AppRole));
-    if (profileRes.data) setProfile(profileRes.data);
+
+    setRoles((rolesRes.data || []).map((r) => r.role as AppRole));
+    setProfile(profileRes.data ?? null);
   };
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const syncSession = async (session: Session | null) => {
       setSession(session);
       setUser(session?.user ?? null);
+
       if (session?.user) {
-        setTimeout(() => fetchUserData(session.user.id), 0);
+        await fetchUserData(session.user.id);
       } else {
         setRoles([]);
         setProfile(null);
       }
+
       setLoading(false);
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setLoading(true);
+      void syncSession(session);
     });
 
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) fetchUserData(session.user.id);
-      setLoading(false);
+      setLoading(true);
+      void syncSession(session);
     });
 
     return () => subscription.unsubscribe();
