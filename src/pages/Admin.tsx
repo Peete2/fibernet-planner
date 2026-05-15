@@ -20,6 +20,7 @@ import DocumentPreview from "@/components/DocumentPreview";
 import AuditLogPanel from "@/components/AuditLogPanel";
 import AnalyticsPanel from "@/components/AnalyticsPanel";
 import StagePerformancePanel from "@/components/StagePerformancePanel";
+import StageFunnel from "@/components/StageFunnel";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import Footer from "@/components/Footer";
 import PageSkeleton from "@/components/PageSkeleton";
@@ -809,7 +810,7 @@ export default function Admin() {
 
             {/* ========== FUNNEL & UTILIZATION ========== */}
             <TabsContent value="funnel">
-              <AnalyticsPanel />
+              <StageFunnel />
             </TabsContent>
 
             {/* ========== PLAN ROUTES ========== */}
