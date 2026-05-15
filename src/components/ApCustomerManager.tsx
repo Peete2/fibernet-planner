@@ -75,8 +75,8 @@ export default function ApCustomerManager() {
 
       <div className="grid md:grid-cols-[1.4fr_1.4fr_1fr_1fr_auto] gap-2">
         <Select value={selectedNode} onValueChange={setSelectedNode}>
-          <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="Choose access point" /></SelectTrigger>
-          <SelectContent>
+          <SelectTrigger className="h-9 text-sm z-10 relative"><SelectValue placeholder="Choose access point" /></SelectTrigger>
+          <SelectContent className="z-[1000]">
             {nodes.map((n) => (
               <SelectItem key={n.id} value={n.id}>
                 {n.name} ({n.connected_customers}/{n.capacity})
