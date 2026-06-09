@@ -25,7 +25,7 @@ const SLIDES = [
     eyebrow: "Fibre Broadband",
     title: "Lightning-fast Fibre to your door",
     desc: "Symmetric speeds up to 200Mbps. Stream, work and play without limits across Lesotho.",
-    cta: { label: "Apply for Fibre", to: "/apply?service=fibre" },
+    cta: { label: "Check Fibre Coverage", to: "/coverage?intent=fibre" },
   },
   {
     image: slideHome,
@@ -43,20 +43,20 @@ const SLIDES = [
   },
   {
     image: slideEcocash,
-    eyebrow: "EcoCash Spache Fono",
-    title: "Send, save and pay — anywhere",
-    desc: "The mobile wallet that lets Econet subscribers transact across all networks in Lesotho.",
-    cta: { label: "Find out more", to: "/services" },
+    eyebrow: "Wi-Fi PLUS",
+    title: "Home Wi-Fi + mobile data in one plan",
+    desc: "Bundled connectivity for your household — Econet picks Fibre or Fixed LTE based on what's available at your address.",
+    cta: { label: "Apply for Wi-Fi PLUS", to: "/apply" },
   },
 ];
 
 const ROTATING_WORDS = ["the Future", "Every Home", "Every Business", "All 10 Districts"];
 const MARQUEE_ITEMS = [
   "Fibre to the Home",
-  "LTE Wireless",
+  "Fixed LTE",
+  "Wi-Fi PLUS",
+  "Limited Wi-Fi",
   "Enterprise Connectivity",
-  "5G Roaming",
-  "EcoCash Payments",
   "Nationwide Coverage",
   "24/7 Support",
 ];

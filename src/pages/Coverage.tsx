@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import LeafletMap from "@/components/LeafletMap";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
-import { Search, MapPin, Loader2 } from "lucide-react";
+import { Search, MapPin, Loader2, Cable } from "lucide-react";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
 
@@ -14,6 +15,8 @@ interface NominatimResult {
 }
 
 export default function Coverage() {
+  const [searchParams] = useSearchParams();
+  const fibreIntent = searchParams.get("intent") === "fibre";
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [key, setKey] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
@@ -106,6 +109,18 @@ export default function Coverage() {
           <p className="text-muted-foreground mb-6">
             Explore fiber nodes, routes, and demand heatmap across Lesotho.
           </p>
+
+          {fibreIntent && (
+            <div className="mb-5 rounded-xl border border-primary/30 bg-primary/5 p-4 flex items-start gap-3">
+              <Cable className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+              <div className="text-sm">
+                <p className="font-semibold text-foreground mb-0.5">Check fibre availability first</p>
+                <p className="text-muted-foreground">
+                  Click your location on the map (or use the search). If fibre reaches you, you'll get an <strong>Apply for fibre</strong> button that auto-fills your GPS coordinates. If not, we'll suggest Wi-Fi PLUS, Fixed LTE or Limited Wi-Fi instead.
+                </p>
+              </div>
+            </div>
+          )}
 
           <div className="flex flex-col sm:flex-row gap-3 mb-4">
             <div className="relative flex gap-2 flex-1 max-w-md" ref={containerRef}>

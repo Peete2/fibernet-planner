@@ -30,7 +30,7 @@ export type ServiceCategoryId = "fmc" | "lte" | "fibre" | "fwa";
 // Fixed category metadata. Plans are loaded dynamically from the
 // `service_plans` table in the database (admin-managed).
 const CATEGORY_META: Record<ServiceCategoryId, { label: string; icon: React.ElementType; description: string; requiresFibreCheck?: boolean }> = {
-  fmc:   { label: "Wi-Fi PLUS",     icon: Wifi,   description: "Home WiFi + mobile data in one subscription" },
+  fmc:   { label: "Wi-Fi PLUS",     icon: Wifi,   description: "Bundled Fibre or Fixed LTE — Econet picks the best for your address" },
   lte:   { label: "Fixed LTE",      icon: Radio,  description: "Unlimited LTE for home & office" },
   fibre: { label: "Fibre (GPON)",   icon: Cable,  description: "Ultra-fast fibre – requires coverage area", requiresFibreCheck: true },
   fwa:   { label: "Limited Wi-Fi",  icon: School, description: "Affordable data for schools & students" },
