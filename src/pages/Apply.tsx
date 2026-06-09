@@ -241,7 +241,7 @@ export default function Apply() {
 
   if (submittedRef) {
     return (
-      <div className="pt-20 min-h-screen bg-background flex items-center justify-center">
+      <div className="pt-20 min-h-screen bg-mesh-light relative flex items-center justify-center">
         <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center p-8">
           <CheckCircle className="w-16 h-16 text-primary mx-auto mb-4" />
           <h2 className="text-2xl font-display font-bold text-foreground mb-2">Application Submitted!</h2>
@@ -268,7 +268,7 @@ export default function Apply() {
   }
 
   return (
-    <div className="pt-20 min-h-screen bg-background flex flex-col">
+    <div className="pt-20 min-h-screen bg-mesh-light relative flex flex-col">
       <div className="container mx-auto px-4 py-8 max-w-2xl flex-1">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-2">Apply for Service</h1>
