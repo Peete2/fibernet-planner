@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { MapPin, Wifi, BarChart3, Shield, ArrowRight, Zap, Globe } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { MapPin, Wifi, BarChart3, Shield, ArrowRight, Zap, Globe, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Footer from "@/components/Footer";
 import heroBg from "@/assets/hero-bg.jpg";
@@ -14,6 +15,71 @@ const features = [
   { icon: Globe, title: "Nationwide Reach", desc: "Connecting all 10 districts of Lesotho with fiber and wireless" },
 ];
 
+const ROTATING_WORDS = ["the Future", "Every Home", "Every Business", "All 10 Districts"];
+const MARQUEE_ITEMS = [
+  "Fibre to the Home",
+  "LTE Wireless",
+  "Enterprise Connectivity",
+  "5G Roaming",
+  "EcoCash Payments",
+  "Nationwide Coverage",
+  "24/7 Support",
+];
+
+function Meteors({ count = 18 }: { count?: number }) {
+  const meteors = useMemo(
+    () =>
+      Array.from({ length: count }).map((_, i) => ({
+        id: i,
+        top: Math.random() * 60,
+        left: Math.random() * 100,
+        delay: Math.random() * 6,
+        duration: 4 + Math.random() * 6,
+      })),
+    [count]
+  );
+  return (
+    <div aria-hidden className="absolute inset-0 overflow-hidden pointer-events-none">
+      {meteors.map((m) => (
+        <span
+          key={m.id}
+          className="absolute h-0.5 w-0.5 rounded-full bg-primary-foreground shadow-[0_0_8px_2px_hsl(195_90%_70%/0.8)] animate-meteor"
+          style={{
+            top: `${m.top}%`,
+            left: `${m.left}%`,
+            animationDelay: `${m.delay}s`,
+            animationDuration: `${m.duration}s`,
+          }}
+        >
+          <span className="absolute top-1/2 -translate-y-1/2 w-[60px] h-px bg-gradient-to-r from-primary-foreground/80 to-transparent" />
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function RotatingWord() {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setI((v) => (v + 1) % ROTATING_WORDS.length), 2600);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <span className="relative inline-block align-bottom overflow-hidden h-[1.1em] min-w-[6ch]">
+      <motion.span
+        key={i}
+        initial={{ y: "100%", opacity: 0 }}
+        animate={{ y: "0%", opacity: 1 }}
+        exit={{ y: "-100%", opacity: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="block bg-gradient-to-r from-primary-foreground via-primary-foreground/80 to-primary-foreground/60 bg-clip-text text-transparent"
+      >
+        {ROTATING_WORDS[i]}
+      </motion.span>
+    </span>
+  );
+}
+
 export default function Index() {
   return (
     <div className="min-h-screen">
@@ -23,6 +89,19 @@ export default function Index() {
           className="absolute inset-0 bg-cover bg-center opacity-30"
           style={{ backgroundImage: `url(${heroBg})` }}
         />
+        {/* Animated grid */}
+        <div aria-hidden className="absolute inset-0 bg-grid-fade" />
+        {/* Aurora sweep */}
+        <div
+          aria-hidden
+          className="absolute -inset-1/2 opacity-40 animate-aurora"
+          style={{
+            background:
+              "conic-gradient(from 90deg at 50% 50%, transparent 0deg, hsl(195 90% 60% / 0.35) 60deg, transparent 120deg, hsl(220 90% 65% / 0.35) 200deg, transparent 280deg, hsl(170 80% 55% / 0.3) 340deg, transparent 360deg)",
+          }}
+        />
+        {/* Meteor shower */}
+        <Meteors count={20} />
         {/* Animated orbs — Econet-inspired motion */}
         <motion.div
           aria-hidden
@@ -45,7 +124,7 @@ export default function Index() {
           animate={{ x: [0, 40, -20, 0], y: [0, -30, 20, 0] }}
           transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/70 via-primary/60 to-primary/85" />
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/60 via-primary/40 to-primary/90" />
 
         <div className="relative z-10 container mx-auto px-4 text-center">
           <motion.div
@@ -53,21 +132,23 @@ export default function Index() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <span className="inline-block px-4 py-1.5 rounded-full bg-primary-foreground/10 text-primary-foreground text-sm font-medium mb-6 border border-primary-foreground/20">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary-foreground/10 text-primary-foreground text-sm font-medium mb-6 border border-primary-foreground/20 backdrop-blur-sm">
+              <Sparkles className="w-3.5 h-3.5" />
               Econet Telecom Lesotho
             </span>
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-display font-bold text-primary-foreground leading-tight mb-6">
               Connecting Lesotho<br />
-              <span className="text-primary-foreground/80">to the Future</span>
+              to <RotatingWord />
             </h1>
-            <p className="text-lg md:text-xl text-primary-foreground/70 max-w-2xl mx-auto mb-10">
+            <p className="text-lg md:text-xl text-primary-foreground/80 max-w-2xl mx-auto mb-10">
               High-speed fiber optic broadband across all 10 districts.
               Apply online, track your installation, and get connected.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold shadow-lg" asChild>
+              <Button size="lg" className="relative bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold shadow-2xl shadow-primary-foreground/20 overflow-hidden group" asChild>
                 <Link to="/apply">
-                  Apply Now <ArrowRight className="w-4 h-4 ml-1" />
+                  <span className="relative z-10 inline-flex items-center">Apply Now <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-0.5 transition-transform" /></span>
+                  <span className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/15 to-transparent animate-shimmer" />
                 </Link>
               </Button>
               <Button variant="outline" size="lg" className="border-primary-foreground/40 text-primary-foreground bg-transparent hover:bg-primary-foreground/10" asChild>
@@ -75,6 +156,18 @@ export default function Index() {
               </Button>
             </div>
           </motion.div>
+        </div>
+
+        {/* Marquee strip */}
+        <div className="absolute bottom-0 left-0 right-0 z-10 border-y border-primary-foreground/10 bg-primary/40 backdrop-blur-sm py-3 overflow-hidden">
+          <div className="flex w-max animate-marquee gap-12 px-6 text-primary-foreground/80 text-sm tracking-wide whitespace-nowrap">
+            {[...MARQUEE_ITEMS, ...MARQUEE_ITEMS].map((item, idx) => (
+              <span key={idx} className="inline-flex items-center gap-3">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary-foreground/60" />
+                {item}
+              </span>
+            ))}
+          </div>
         </div>
       </section>
 
