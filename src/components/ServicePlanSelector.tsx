@@ -102,17 +102,6 @@ interface Props {
 export default function ServicePlanSelector({ value, onChange, onCategoryChange, latitude, longitude, accountType, initialCategory }: Props) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(initialCategory ?? null);
   const [appliedInitial, setAppliedInitial] = useState(false);
-
-  // Once plans are loaded and the requested initial category exists, lock it in.
-  useEffect(() => {
-    if (appliedInitial || !initialCategory || planCategories.length === 0) return;
-    if (planCategories.some((c) => c.id === initialCategory)) {
-      setSelectedCategory(initialCategory);
-      onCategoryChange?.(initialCategory);
-      setAppliedInitial(true);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialCategory, planCategories, appliedInitial]);
   const [fibreEligible, setFibreEligible] = useState<boolean | null>(null);
   const [fibreNode, setFibreNode] = useState<string | null>(null);
   const [checkingFibre, setCheckingFibre] = useState(false);
