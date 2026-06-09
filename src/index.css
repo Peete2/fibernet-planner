@@ -98,4 +98,48 @@
   .shadow-telecom {
     box-shadow: var(--shadow-telecom);
   }
+
+  /* Animated grid */
+  .bg-grid-fade {
+    background-image:
+      linear-gradient(to right, hsl(0 0% 100% / 0.08) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(0 0% 100% / 0.08) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse at center, black 40%, transparent 80%);
+  }
+
+  /* Aurora sweep */
+  @keyframes aurora-sweep {
+    0%   { transform: translate3d(-30%, -10%, 0) rotate(0deg); }
+    50%  { transform: translate3d(20%, 10%, 0) rotate(180deg); }
+    100% { transform: translate3d(-30%, -10%, 0) rotate(360deg); }
+  }
+  .animate-aurora { animation: aurora-sweep 22s linear infinite; }
+
+  /* Meteor shower */
+  @keyframes meteor {
+    0%   { transform: rotate(215deg) translateX(0); opacity: 1; }
+    70%  { opacity: 1; }
+    100% { transform: rotate(215deg) translateX(-700px); opacity: 0; }
+  }
+  .animate-meteor {
+    animation: meteor linear infinite;
+  }
+
+  /* Marquee */
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+  .animate-marquee { animation: marquee 30s linear infinite; }
+
+  /* Shimmer */
+  @keyframes shimmer-x {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  .animate-shimmer {
+    background-size: 200% 100%;
+    animation: shimmer-x 3s linear infinite;
+  }
 }
