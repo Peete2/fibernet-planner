@@ -29,6 +29,7 @@ export default function Navbar() {
     ...(user && hasRole("service_delivery") ? [{ to: "/service-delivery", label: "Service Delivery" }] : []),
     ...(user && hasRole("technical") ? [{ to: "/technical", label: "Technical" }] : []),
     ...(user && hasRole("billing") ? [{ to: "/billing", label: "Billing" }] : []),
+    ...(user && hasRole("distributor") ? [{ to: "/distributor", label: "Distributor" }] : []),
     ...(user ? [{ to: "/profile", label: "Profile" }] : []),
   ];
 
@@ -73,9 +74,14 @@ export default function Navbar() {
               </Button>
             </div>
           ) : (
-            <Button size="sm" className="ml-3 bg-primary-foreground text-primary hover:bg-primary-foreground/90" asChild>
-              <Link to="/login">Sign In</Link>
-            </Button>
+            <div className="flex items-center gap-2 ml-3">
+              <Button size="sm" variant="ghost" className="text-primary-foreground/80 hover:text-primary-foreground" asChild>
+                <Link to="/distributor">Become a Distributor</Link>
+              </Button>
+              <Button size="sm" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90" asChild>
+                <Link to="/login?mode=signup">Register</Link>
+              </Button>
+            </div>
           )}
         </div>
 
@@ -112,9 +118,14 @@ export default function Navbar() {
                   Sign Out
                 </button>
               ) : (
-                <Link to="/login" onClick={() => setOpen(false)} className="block px-3 py-2 text-sm text-primary-foreground font-medium">
-                  Sign In
-                </Link>
+                <>
+                  <Link to="/distributor" onClick={() => setOpen(false)} className="block px-3 py-2 text-sm text-primary-foreground/80">
+                    Become a Distributor
+                  </Link>
+                  <Link to="/login?mode=signup" onClick={() => setOpen(false)} className="block px-3 py-2 text-sm text-primary-foreground font-medium">
+                    Register
+                  </Link>
+                </>
               )}
             </div>
           </motion.div>

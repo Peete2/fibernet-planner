@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Wifi, Mail, Lock, User, Eye, EyeOff, Building2, School, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,11 @@ const accountTypes = [
 
 export default function Login() {
   const navigate = useNavigate();
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [params] = useSearchParams();
+  const [isSignUp, setIsSignUp] = useState(params.get("mode") === "signup");
+  useEffect(() => {
+    if (params.get("mode") === "signup") setIsSignUp(true);
+  }, [params]);
   const [isForgot, setIsForgot] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);

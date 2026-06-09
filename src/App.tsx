@@ -22,6 +22,7 @@ import TechnicalDashboard from "./pages/TechnicalDashboard";
 import BillingDashboard from "./pages/BillingDashboard";
 import Profile from "./pages/Profile";
 import ResetPassword from "./pages/ResetPassword";
+import Distributor from "./pages/Distributor";
 import NotFound from "./pages/NotFound";
 import Chatbot from "@/components/Chatbot";
 
@@ -56,6 +57,7 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/distributor" element={<Distributor />} />
             <Route
               path="/admin"
               element={

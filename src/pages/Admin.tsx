@@ -18,6 +18,7 @@ import AdminUserManagement from "@/components/AdminUserManagement";
 import ServicePlansManager from "@/components/ServicePlansManager";
 import DocumentPreview from "@/components/DocumentPreview";
 import AuditLogPanel from "@/components/AuditLogPanel";
+import DistributorAdminPanel from "@/components/DistributorAdminPanel";
 import AnalyticsPanel from "@/components/AnalyticsPanel";
 import StagePerformancePanel from "@/components/StagePerformancePanel";
 import StageFunnel from "@/components/StageFunnel";
@@ -411,6 +412,7 @@ export default function Admin() {
               <TabsTrigger value="ai-planner" className="gap-1.5"><Brain className="w-4 h-4" />AI Planner</TabsTrigger>
               <TabsTrigger value="heatmap" className="gap-1.5"><Flame className="w-4 h-4" />Heatmap</TabsTrigger>
               <TabsTrigger value="users" className="gap-1.5"><UsersRound className="w-4 h-4" />Users</TabsTrigger>
+              <TabsTrigger value="distributors" className="gap-1.5"><UsersRound className="w-4 h-4" />Distributors</TabsTrigger>
               <TabsTrigger value="logs" className="gap-1.5"><ScrollText className="w-4 h-4" />System Logs</TabsTrigger>
               <TabsTrigger value="audit" className="gap-1.5"><Shield className="w-4 h-4" />Audit Log</TabsTrigger>
             </TabsList>
@@ -1016,6 +1018,11 @@ export default function Admin() {
             {/* ========== USER MANAGEMENT ========== */}
             <TabsContent value="users">
               <AdminUserManagement />
+            </TabsContent>
+
+            {/* ========== DISTRIBUTORS ========== */}
+            <TabsContent value="distributors">
+              <DistributorAdminPanel />
             </TabsContent>
 
             {/* ========== SYSTEM LOGS ========== */}

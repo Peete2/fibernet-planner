@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useRef, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { MapPin, Loader2, CheckCircle, UserRound, School, Building2, Upload, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,11 @@ const accountTypes = [
 export default function Apply() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const refCode = searchParams.get("ref")?.trim().toUpperCase() || "";
+  const urlLat = searchParams.get("lat") || "";
+  const urlLng = searchParams.get("lng") || "";
+  const [distributor, setDistributor] = useState<{ id: string; business_name: string; code: string } | null>(null);
   
   const [form, setForm] = useState({
     accountType: "individual",
@@ -55,10 +60,31 @@ export default function Apply() {
     nearestLandmark: "",
     preferredDate: "",
     notes: "",
-    latitude: "",
-    longitude: "",
+    latitude: urlLat,
+    longitude: urlLng,
     applicantRole: "" as "student" | "teacher" | "",
   });
+
+  // Resolve referral code (if any) into a distributor record
+  useEffect(() => {
+    if (!refCode) return;
+    (async () => {
+      const { data } = await supabase.rpc("lookup_distributor_by_code", { _code: refCode });
+      const row = Array.isArray(data) && data.length ? data[0] : null;
+      if (row) {
+        setDistributor({ id: row.id, business_name: row.business_name, code: row.code });
+        toast.success(`Referred by ${row.business_name}`);
+      }
+    })();
+  }, [refCode]);
+
+  // Notify when map-passed coords arrive
+  useEffect(() => {
+    if (urlLat && urlLng) {
+      toast.success("Location filled from map");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [detecting, setDetecting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submittedRef, setSubmittedRef] = useState<string | null>(null);
@@ -188,6 +214,7 @@ export default function Apply() {
           document_url: idDocUrl,
           affirmation_letter_url: letterDocUrl,
           applicant_role: form.applicantRole || null,
+          distributor_id: distributor?.id || null,
         } as any)
         .select("ref_code")
         .single();
@@ -236,6 +263,11 @@ export default function Apply() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-2">Apply for Service</h1>
           <p className="text-muted-foreground mb-8">Fill in your details and we'll get you connected.</p>
+          {distributor && (
+            <div className="mb-6 rounded-lg border border-primary/30 bg-primary/5 p-3 text-sm">
+              You were referred by <strong>{distributor.business_name}</strong> (code <code>{distributor.code}</code>).
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6 bg-card border border-border rounded-xl p-6 shadow-telecom">
             {/* Account Type */}
