@@ -18,6 +18,7 @@ import AdminUserManagement from "@/components/AdminUserManagement";
 import ServicePlansManager from "@/components/ServicePlansManager";
 import DocumentPreview from "@/components/DocumentPreview";
 import AuditLogPanel from "@/components/AuditLogPanel";
+import DistributorAdminPanel from "@/components/DistributorAdminPanel";
 import AnalyticsPanel from "@/components/AnalyticsPanel";
 import StagePerformancePanel from "@/components/StagePerformancePanel";
 import StageFunnel from "@/components/StageFunnel";
