@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { MapPin, Wifi, BarChart3, Shield, ArrowRight, Zap, Globe, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Footer from "@/components/Footer";
-import heroBg from "@/assets/hero-bg.jpg";
 import slideFiber from "@/assets/slide-fiber.jpg";
 import slideHome from "@/assets/slide-home.jpg";
 import slideBusiness from "@/assets/slide-business.jpg";
