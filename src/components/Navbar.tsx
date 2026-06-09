@@ -41,10 +41,13 @@ export default function Navbar() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-primary border-b border-primary-foreground/10">
       <div className="container mx-auto flex items-center justify-between h-16 px-4">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="bg-primary-foreground rounded-md px-2 py-1 flex items-center">
-            <img src={econetLogo} alt="Econet Telecom Lesotho" className="h-7 w-auto" />
+        <Link to="/" className="flex items-center gap-3 group">
+          <div className="bg-primary-foreground rounded-lg px-3 py-1.5 flex items-center shadow-md ring-1 ring-primary-foreground/20 group-hover:shadow-lg transition-shadow">
+            <img src={econetLogo} alt="Econet Telecom Lesotho" className="h-9 w-auto object-contain" />
           </div>
+          <span className="hidden sm:block text-primary-foreground font-display font-semibold tracking-wide text-sm leading-tight">
+            Econet Telecom<br/><span className="text-primary-foreground/70 text-xs font-normal">Lesotho</span>
+          </span>
         </Link>
 
         <div className="hidden md:flex items-center gap-1">
