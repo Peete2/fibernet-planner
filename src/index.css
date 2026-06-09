@@ -142,4 +142,38 @@
     background-size: 200% 100%;
     animation: shimmer-x 3s linear infinite;
   }
+
+  /* Animated mesh gradient — for light sections that previously were plain white */
+  @keyframes mesh-drift {
+    0%   { background-position: 0% 0%, 100% 0%, 50% 100%; }
+    50%  { background-position: 40% 30%, 60% 70%, 30% 40%; }
+    100% { background-position: 0% 0%, 100% 0%, 50% 100%; }
+  }
+  .bg-mesh-light {
+    background-color: hsl(var(--background));
+    background-image:
+      radial-gradient(at 15% 20%, hsl(220 70% 18% / 0.08) 0px, transparent 50%),
+      radial-gradient(at 85% 10%, hsl(195 90% 55% / 0.10) 0px, transparent 50%),
+      radial-gradient(at 50% 90%, hsl(220 80% 50% / 0.08) 0px, transparent 50%);
+    background-size: 200% 200%, 200% 200%, 200% 200%;
+    animation: mesh-drift 28s ease-in-out infinite;
+  }
+  .bg-mesh-light::before {
+    content: "";
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(to right, hsl(220 50% 12% / 0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(220 50% 12% / 0.04) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+    pointer-events: none;
+  }
+
+  /* Ken-Burns slow zoom for hero images */
+  @keyframes ken-burns {
+    0%   { transform: scale(1.05) translate3d(0,0,0); }
+    50%  { transform: scale(1.15) translate3d(-1%, -1%, 0); }
+    100% { transform: scale(1.05) translate3d(0,0,0); }
+  }
+  .animate-ken-burns { animation: ken-burns 14s ease-in-out infinite; }
 }
