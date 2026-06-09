@@ -151,6 +151,7 @@ export type Database = {
           building_type: string | null
           created_at: string
           customer_name: string
+          distributor_id: string | null
           district: string
           document_url: string | null
           email: string | null
@@ -191,6 +192,7 @@ export type Database = {
           building_type?: string | null
           created_at?: string
           customer_name: string
+          distributor_id?: string | null
           district: string
           document_url?: string | null
           email?: string | null
@@ -231,6 +233,7 @@ export type Database = {
           building_type?: string | null
           created_at?: string
           customer_name?: string
+          distributor_id?: string | null
           district?: string
           document_url?: string | null
           email?: string | null
@@ -259,7 +262,15 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "applications_distributor_id_fkey"
+            columns: ["distributor_id"]
+            isOneToOne: false
+            referencedRelation: "distributors"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       customer_connections: {
         Row: {
@@ -314,6 +325,126 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      distributor_commissions: {
+        Row: {
+          application_id: string
+          commission_amount: number
+          created_at: string
+          distributor_id: string
+          due_date: string | null
+          id: string
+          month_index: number
+          paid: boolean
+          paid_at: string | null
+          paid_by: string | null
+          paid_note: string | null
+          plan_price: number
+          updated_at: string
+        }
+        Insert: {
+          application_id: string
+          commission_amount?: number
+          created_at?: string
+          distributor_id: string
+          due_date?: string | null
+          id?: string
+          month_index: number
+          paid?: boolean
+          paid_at?: string | null
+          paid_by?: string | null
+          paid_note?: string | null
+          plan_price?: number
+          updated_at?: string
+        }
+        Update: {
+          application_id?: string
+          commission_amount?: number
+          created_at?: string
+          distributor_id?: string
+          due_date?: string | null
+          id?: string
+          month_index?: number
+          paid?: boolean
+          paid_at?: string | null
+          paid_by?: string | null
+          paid_note?: string | null
+          plan_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "distributor_commissions_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "distributor_commissions_distributor_id_fkey"
+            columns: ["distributor_id"]
+            isOneToOne: false
+            referencedRelation: "distributors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      distributors: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          business_name: string
+          code: string
+          commission_months: number
+          commission_rate: number
+          contact_name: string
+          created_at: string
+          district: string | null
+          email: string | null
+          id: string
+          notes: string | null
+          phone: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          business_name: string
+          code: string
+          commission_months?: number
+          commission_rate?: number
+          contact_name: string
+          created_at?: string
+          district?: string | null
+          email?: string | null
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          business_name?: string
+          code?: string
+          commission_months?: number
+          commission_rate?: number
+          contact_name?: string
+          created_at?: string
+          district?: string | null
+          email?: string | null
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       fiber_nodes: {
         Row: {
@@ -552,6 +683,7 @@ export type Database = {
           building_type: string | null
           created_at: string
           customer_name: string
+          distributor_id: string | null
           district: string
           document_url: string | null
           email: string | null
@@ -594,6 +726,16 @@ export type Database = {
         }
         Returns: boolean
       }
+      lookup_distributor_by_code: {
+        Args: { _code: string }
+        Returns: {
+          business_name: string
+          code: string
+          id: string
+          status: string
+        }[]
+      }
+      parse_plan_price: { Args: { _text: string }; Returns: number }
       role_for_stage: {
         Args: { _stage: string }
         Returns: Database["public"]["Enums"]["app_role"]
@@ -609,6 +751,7 @@ export type Database = {
         | "service_delivery"
         | "technical"
         | "billing"
+        | "distributor"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -745,6 +888,7 @@ export const Constants = {
         "service_delivery",
         "technical",
         "billing",
+        "distributor",
       ],
     },
   },
