@@ -263,6 +263,11 @@ export default function Apply() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-2">Apply for Service</h1>
           <p className="text-muted-foreground mb-8">Fill in your details and we'll get you connected.</p>
+          {distributor && (
+            <div className="mb-6 rounded-lg border border-primary/30 bg-primary/5 p-3 text-sm">
+              You were referred by <strong>{distributor.business_name}</strong> (code <code>{distributor.code}</code>).
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6 bg-card border border-border rounded-xl p-6 shadow-telecom">
             {/* Account Type */}
