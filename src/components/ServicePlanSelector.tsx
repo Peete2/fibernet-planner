@@ -153,6 +153,17 @@ export default function ServicePlanSelector({ value, onChange, onCategoryChange,
   // visibility is now driven by per-plan visible_to flag (see fetch above)
   const visibleCategories = planCategories;
 
+  // Once plans are loaded and the requested initial category exists, lock it in.
+  useEffect(() => {
+    if (appliedInitial || !initialCategory || planCategories.length === 0) return;
+    if (planCategories.some((c) => c.id === initialCategory)) {
+      setSelectedCategory(initialCategory);
+      onCategoryChange?.(initialCategory);
+      setAppliedInitial(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialCategory, planCategories, appliedInitial]);
+
   const activeCategory = visibleCategories.find((c) => c.id === selectedCategory);
 
   // Check fibre eligibility when selecting fibre category
