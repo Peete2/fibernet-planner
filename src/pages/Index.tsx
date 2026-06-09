@@ -1,10 +1,14 @@
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
-import { MapPin, Wifi, BarChart3, Shield, ArrowRight, Zap, Globe, Sparkles } from "lucide-react";
+import { MapPin, Wifi, BarChart3, Shield, ArrowRight, Zap, Globe, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Footer from "@/components/Footer";
 import heroBg from "@/assets/hero-bg.jpg";
+import slideFiber from "@/assets/slide-fiber.jpg";
+import slideHome from "@/assets/slide-home.jpg";
+import slideBusiness from "@/assets/slide-business.jpg";
+import slideEcocash from "@/assets/slide-ecocash.jpg";
 
 const features = [
   { icon: Wifi, title: "Fiber Broadband", desc: "Up to 200Mbps symmetric fiber to your premises across Lesotho" },
@@ -13,6 +17,37 @@ const features = [
   { icon: Shield, title: "99.9% Uptime", desc: "Enterprise-grade network reliability backed by SLA" },
   { icon: Zap, title: "Fast Installation", desc: "Track your application from submission to activation" },
   { icon: Globe, title: "Nationwide Reach", desc: "Connecting all 10 districts of Lesotho with fiber and wireless" },
+];
+
+const SLIDES = [
+  {
+    image: slideFiber,
+    eyebrow: "Fibre Broadband",
+    title: "Lightning-fast Fibre to your door",
+    desc: "Symmetric speeds up to 200Mbps. Stream, work and play without limits across Lesotho.",
+    cta: { label: "Apply for Fibre", to: "/apply?service=fibre" },
+  },
+  {
+    image: slideHome,
+    eyebrow: "Home Entertainment",
+    title: "Bring the whole family online",
+    desc: "Unlimited streaming, video calls and gaming on Econet's reliable fibre network.",
+    cta: { label: "Get Connected", to: "/apply" },
+  },
+  {
+    image: slideBusiness,
+    eyebrow: "Enterprise Connectivity",
+    title: "Built for business in Lesotho",
+    desc: "Dedicated bandwidth, SLA-backed uptime and managed solutions for SMEs and corporates.",
+    cta: { label: "Talk to Business", to: "/apply?service=enterprise" },
+  },
+  {
+    image: slideEcocash,
+    eyebrow: "EcoCash Spache Fono",
+    title: "Send, save and pay — anywhere",
+    desc: "The mobile wallet that lets Econet subscribers transact across all networks in Lesotho.",
+    cta: { label: "Find out more", to: "/services" },
+  },
 ];
 
 const ROTATING_WORDS = ["the Future", "Every Home", "Every Business", "All 10 Districts"];
@@ -77,6 +112,124 @@ function RotatingWord() {
         {ROTATING_WORDS[i]}
       </motion.span>
     </span>
+  );
+}
+
+function HeroCarousel() {
+  const [i, setI] = useState(0);
+  const [dir, setDir] = useState(1);
+  const go = (next: number) => {
+    setDir(next > i || (i === SLIDES.length - 1 && next === 0) ? 1 : -1);
+    setI((next + SLIDES.length) % SLIDES.length);
+  };
+  useEffect(() => {
+    const t = setInterval(() => {
+      setDir(1);
+      setI((v) => (v + 1) % SLIDES.length);
+    }, 6000);
+    return () => clearInterval(t);
+  }, []);
+  const slide = SLIDES[i];
+  return (
+    <div className="relative w-full h-[clamp(420px,70vh,640px)] overflow-hidden rounded-2xl border border-primary-foreground/15 shadow-2xl shadow-primary/40">
+      <AnimatePresence initial={false} mode="popLayout" custom={dir}>
+        <motion.div
+          key={i}
+          custom={dir}
+          initial={{ opacity: 0, x: dir * 80, scale: 1.08 }}
+          animate={{ opacity: 1, x: 0, scale: 1 }}
+          exit={{ opacity: 0, x: -dir * 80, scale: 1.04 }}
+          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+          className="absolute inset-0"
+        >
+          <motion.img
+            src={slide.image}
+            alt={slide.title}
+            width={1600}
+            height={900}
+            className="absolute inset-0 w-full h-full object-cover"
+            initial={{ scale: 1.08 }}
+            animate={{ scale: 1.18 }}
+            transition={{ duration: 7, ease: "linear" }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/85 via-primary/55 to-primary/10" />
+          <div className="absolute inset-0 flex items-center">
+            <div className="px-6 md:px-12 max-w-xl">
+              <motion.span
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
+                className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-foreground/15 text-primary-foreground text-xs font-semibold tracking-wider uppercase mb-4 border border-primary-foreground/25 backdrop-blur-sm"
+              >
+                <Sparkles className="w-3 h-3" /> {slide.eyebrow}
+              </motion.span>
+              <motion.h2
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25, duration: 0.6 }}
+                className="font-display font-bold text-3xl md:text-5xl text-primary-foreground leading-tight mb-4"
+              >
+                {slide.title}
+              </motion.h2>
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.35, duration: 0.6 }}
+                className="text-primary-foreground/85 text-base md:text-lg mb-6"
+              >
+                {slide.desc}
+              </motion.p>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.45, duration: 0.6 }}
+              >
+                <Button
+                  size="lg"
+                  className="rounded-full bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold shadow-xl"
+                  asChild
+                >
+                  <Link to={slide.cta.to}>
+                    {slide.cta.label}
+                    <ArrowRight className="w-4 h-4 ml-1" />
+                  </Link>
+                </Button>
+              </motion.div>
+            </div>
+          </div>
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Arrows */}
+      <button
+        aria-label="Previous slide"
+        onClick={() => go(i - 1)}
+        className="absolute left-3 md:left-5 bottom-5 md:top-1/2 md:-translate-y-1/2 z-20 grid place-items-center w-10 h-10 rounded-full bg-primary-foreground/15 hover:bg-primary-foreground/30 backdrop-blur-sm border border-primary-foreground/25 text-primary-foreground transition"
+      >
+        <ChevronLeft className="w-5 h-5" />
+      </button>
+      <button
+        aria-label="Next slide"
+        onClick={() => go(i + 1)}
+        className="absolute left-16 md:left-auto md:right-5 bottom-5 md:top-1/2 md:-translate-y-1/2 z-20 grid place-items-center w-10 h-10 rounded-full bg-primary-foreground/15 hover:bg-primary-foreground/30 backdrop-blur-sm border border-primary-foreground/25 text-primary-foreground transition"
+      >
+        <ChevronRight className="w-5 h-5" />
+      </button>
+
+      {/* Dots */}
+      <div className="absolute bottom-5 right-5 z-20 flex items-center gap-2">
+        {SLIDES.map((_, idx) => (
+          <button
+            key={idx}
+            aria-label={`Go to slide ${idx + 1}`}
+            onClick={() => go(idx)}
+            className={`h-1.5 rounded-full transition-all ${
+              idx === i ? "w-8 bg-primary-foreground" : "w-3 bg-primary-foreground/40 hover:bg-primary-foreground/70"
+            }`}
+          />
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -155,6 +308,16 @@ export default function Index() {
                 <Link to="/coverage">Check Coverage</Link>
               </Button>
             </div>
+          </motion.div>
+
+          {/* Rotating service carousel */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="mt-12 md:mt-16 max-w-5xl mx-auto"
+          >
+            <HeroCarousel />
           </motion.div>
         </div>
 
