@@ -373,6 +373,7 @@ export default function Apply() {
                 latitude={form.latitude}
                 longitude={form.longitude}
                 accountType={form.accountType}
+                initialCategory={urlService === "fibre" ? "fibre" : undefined}
               />
             </div>
 
