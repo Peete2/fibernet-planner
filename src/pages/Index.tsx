@@ -4,7 +4,6 @@ import { MapPin, Wifi, BarChart3, Shield, ArrowRight, Zap, Globe } from "lucide-
 import { Button } from "@/components/ui/button";
 import Footer from "@/components/Footer";
 import heroBg from "@/assets/hero-bg.jpg";
-import econetLogo from "@/assets/econet-logo.jpg";
 
 const features = [
   { icon: Wifi, title: "Fiber Broadband", desc: "Up to 200Mbps symmetric fiber to your premises across Lesotho" },
@@ -54,16 +53,6 @@ export default function Index() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.9, delay: 0.1 }}
-              className="flex justify-center mb-6"
-            >
-              <div className="bg-primary-foreground/95 backdrop-blur rounded-2xl px-5 py-3 shadow-2xl ring-1 ring-primary-foreground/30">
-                <img src={econetLogo} alt="Econet Telecom Lesotho" className="h-12 w-auto" />
-              </div>
-            </motion.div>
             <span className="inline-block px-4 py-1.5 rounded-full bg-primary-foreground/10 text-primary-foreground text-sm font-medium mb-6 border border-primary-foreground/20">
               Econet Telecom Lesotho
             </span>
