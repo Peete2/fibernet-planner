@@ -240,6 +240,11 @@ export default function LeafletMap({
               : within && nearest.status !== "Active"
                 ? `<span style="color:#6366f1;font-weight:600">🛠️ Coverage planned, not active yet</span>`
                 : `<span style="color:#ef4444;font-weight:600">❌ Outside coverage radius</span>`;
+          const applyHref = `/apply?lat=${lat.toFixed(6)}&lng=${lng.toFixed(6)}${eligible ? "&service=fibre" : ""}`;
+          const cta = eligible
+            ? `<a href="${applyHref}" style="background:#10b981;color:#fff;padding:6px 10px;border-radius:6px;text-decoration:none;display:inline-block;font-weight:600">Apply for fibre (auto-fill coords)</a>`
+            : `<div style="font-size:11px;color:#64748b;margin-bottom:6px">Fibre isn't available here. Try our other services:</div>
+               <a href="/apply?lat=${lat.toFixed(6)}&lng=${lng.toFixed(6)}" style="background:hsl(220 70% 18%);color:#fff;padding:6px 10px;border-radius:6px;text-decoration:none;display:inline-block">Browse alternatives</a>`;
           html = `<div style="font-family:Inter,sans-serif;min-width:240px">
             <strong style="font-size:14px">📍 Coverage check</strong>
             <hr style="border-color:#334155;margin:6px 0"/>
@@ -248,9 +253,7 @@ export default function LeafletMap({
               Nearest AP: <strong>${nearest.name}</strong><br/>
               Distance: <strong>${nearestDist.toFixed(2)} km</strong> (radius ${nearest.radius_km} km)<br/>
               Capacity: ${nearest.connected_customers}/${nearest.capacity}
-              <div style="margin-top:8px">
-                <a href="/apply" style="background:hsl(220 70% 18%);color:#fff;padding:6px 10px;border-radius:6px;text-decoration:none;display:inline-block">Apply for service</a>
-              </div>
+              <div style="margin-top:8px">${cta}</div>
             </div>
           </div>`;
         }
