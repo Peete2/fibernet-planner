@@ -1020,6 +1020,11 @@ export default function Admin() {
               <AdminUserManagement />
             </TabsContent>
 
+            {/* ========== DISTRIBUTORS ========== */}
+            <TabsContent value="distributors">
+              <DistributorAdminPanel />
+            </TabsContent>
+
             {/* ========== SYSTEM LOGS ========== */}
             <TabsContent value="logs">
               <div className="bg-card border border-border rounded-xl p-5 shadow-telecom">
