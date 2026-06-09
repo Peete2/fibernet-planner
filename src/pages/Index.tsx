@@ -114,228 +114,201 @@ function RotatingWord() {
   );
 }
 
-function HeroCarousel() {
+function FullscreenHero() {
   const [i, setI] = useState(0);
   const [dir, setDir] = useState(1);
   const go = (next: number) => {
-    setDir(next > i || (i === SLIDES.length - 1 && next === 0) ? 1 : -1);
-    setI((next + SLIDES.length) % SLIDES.length);
+    const n = (next + SLIDES.length) % SLIDES.length;
+    setDir(n > i ? 1 : -1);
+    setI(n);
   };
   useEffect(() => {
     const t = setInterval(() => {
       setDir(1);
       setI((v) => (v + 1) % SLIDES.length);
-    }, 6000);
+    }, 6500);
     return () => clearInterval(t);
   }, []);
   const slide = SLIDES[i];
+
   return (
-    <div className="relative w-full h-[clamp(420px,70vh,640px)] overflow-hidden rounded-2xl border border-primary-foreground/15 shadow-2xl shadow-primary/40">
-      <AnimatePresence initial={false} mode="popLayout" custom={dir}>
+    <section className="relative min-h-[100vh] flex items-center overflow-hidden bg-primary">
+      {/* Rotating image background */}
+      <AnimatePresence initial={false} mode="sync">
         <motion.div
-          key={i}
-          custom={dir}
-          initial={{ opacity: 0, x: dir * 80, scale: 1.08 }}
-          animate={{ opacity: 1, x: 0, scale: 1 }}
-          exit={{ opacity: 0, x: -dir * 80, scale: 1.04 }}
-          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+          key={`bg-${i}`}
+          initial={{ opacity: 0, scale: 1.1 }}
+          animate={{ opacity: 1, scale: 1.0 }}
+          exit={{ opacity: 0, scale: 1.05 }}
+          transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
           className="absolute inset-0"
         >
-          <motion.img
+          <img
             src={slide.image}
-            alt={slide.title}
-            width={1600}
-            height={900}
-            className="absolute inset-0 w-full h-full object-cover"
-            initial={{ scale: 1.08 }}
-            animate={{ scale: 1.18 }}
-            transition={{ duration: 7, ease: "linear" }}
+            alt=""
+            aria-hidden
+            className="absolute inset-0 w-full h-full object-cover animate-ken-burns"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/85 via-primary/55 to-primary/10" />
-          <div className="absolute inset-0 flex items-center">
-            <div className="px-6 md:px-12 max-w-xl">
-              <motion.span
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.15 }}
-                className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-foreground/15 text-primary-foreground text-xs font-semibold tracking-wider uppercase mb-4 border border-primary-foreground/25 backdrop-blur-sm"
-              >
-                <Sparkles className="w-3 h-3" /> {slide.eyebrow}
-              </motion.span>
-              <motion.h2
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.25, duration: 0.6 }}
-                className="font-display font-bold text-3xl md:text-5xl text-primary-foreground leading-tight mb-4"
-              >
-                {slide.title}
-              </motion.h2>
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.35, duration: 0.6 }}
-                className="text-primary-foreground/85 text-base md:text-lg mb-6"
-              >
-                {slide.desc}
-              </motion.p>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.45, duration: 0.6 }}
-              >
-                <Button
-                  size="lg"
-                  className="rounded-full bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold shadow-xl"
-                  asChild
-                >
-                  <Link to={slide.cta.to}>
-                    {slide.cta.label}
-                    <ArrowRight className="w-4 h-4 ml-1" />
-                  </Link>
-                </Button>
-              </motion.div>
-            </div>
-          </div>
         </motion.div>
       </AnimatePresence>
+
+      {/* Layered dark overlays for legibility */}
+      <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-primary/95 via-primary/70 to-primary/30" />
+      <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-primary/95 via-transparent to-primary/40" />
+      <div aria-hidden className="absolute inset-0 bg-grid-fade opacity-60" />
+
+      {/* Aurora & orbs */}
+      <div
+        aria-hidden
+        className="absolute -inset-1/2 opacity-30 animate-aurora pointer-events-none"
+        style={{
+          background:
+            "conic-gradient(from 90deg at 50% 50%, transparent 0deg, hsl(195 90% 60% / 0.35) 60deg, transparent 120deg, hsl(220 90% 65% / 0.35) 200deg, transparent 280deg, hsl(170 80% 55% / 0.3) 340deg, transparent 360deg)",
+        }}
+      />
+      <Meteors count={16} />
+      <motion.div
+        aria-hidden
+        className="absolute -top-40 -left-32 w-[36rem] h-[36rem] rounded-full pointer-events-none"
+        style={{ background: "radial-gradient(circle, hsl(195 90% 55% / 0.25) 0%, transparent 70%)" }}
+        animate={{ x: [0, 60, 0], y: [0, 40, 0] }}
+        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div
+        aria-hidden
+        className="absolute -bottom-40 -right-32 w-[40rem] h-[40rem] rounded-full pointer-events-none"
+        style={{ background: "radial-gradient(circle, hsl(220 80% 50% / 0.35) 0%, transparent 70%)" }}
+        animate={{ x: [0, -50, 0], y: [0, -30, 0] }}
+        transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
+      />
+
+      {/* Foreground content */}
+      <div className="relative z-10 container mx-auto px-4 py-24 md:py-0">
+        <div className="max-w-2xl">
+          <motion.span
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary-foreground/10 text-primary-foreground text-sm font-medium mb-6 border border-primary-foreground/20 backdrop-blur-sm"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            Econet Telecom Lesotho
+          </motion.span>
+
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-4xl md:text-6xl lg:text-7xl font-display font-bold text-primary-foreground leading-[1.05] mb-6 drop-shadow-[0_4px_30px_hsl(220_70%_10%/0.6)]"
+          >
+            Connecting Lesotho<br />
+            to <RotatingWord />
+          </motion.h1>
+
+          {/* Per-slide tagline */}
+          <div className="min-h-[6.5rem] mb-8">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`copy-${i}`}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.6 }}
+              >
+                <p className="inline-block px-3 py-1 rounded-full bg-primary-foreground/15 border border-primary-foreground/25 text-primary-foreground text-xs font-semibold tracking-widest uppercase mb-3 backdrop-blur-sm">
+                  {slide.eyebrow}
+                </p>
+                <p className="text-lg md:text-xl text-primary-foreground/90 max-w-xl">
+                  {slide.title} — {slide.desc}
+                </p>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="flex flex-col sm:flex-row gap-4"
+          >
+            <Button
+              size="lg"
+              className="relative bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold shadow-2xl shadow-primary-foreground/20 overflow-hidden group"
+              asChild
+            >
+              <Link to={slide.cta.to}>
+                <span className="relative z-10 inline-flex items-center">
+                  {slide.cta.label}
+                  <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
+                </span>
+                <span className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/15 to-transparent animate-shimmer" />
+              </Link>
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              className="border-primary-foreground/40 text-primary-foreground bg-transparent hover:bg-primary-foreground/10"
+              asChild
+            >
+              <Link to="/coverage">Check Coverage</Link>
+            </Button>
+          </motion.div>
+        </div>
+      </div>
 
       {/* Arrows */}
       <button
         aria-label="Previous slide"
         onClick={() => go(i - 1)}
-        className="absolute left-3 md:left-5 bottom-5 md:top-1/2 md:-translate-y-1/2 z-20 grid place-items-center w-10 h-10 rounded-full bg-primary-foreground/15 hover:bg-primary-foreground/30 backdrop-blur-sm border border-primary-foreground/25 text-primary-foreground transition"
+        className="absolute right-20 bottom-24 md:right-24 md:bottom-28 z-20 grid place-items-center w-11 h-11 rounded-full bg-primary-foreground/10 hover:bg-primary-foreground/25 backdrop-blur-sm border border-primary-foreground/25 text-primary-foreground transition"
       >
         <ChevronLeft className="w-5 h-5" />
       </button>
       <button
         aria-label="Next slide"
         onClick={() => go(i + 1)}
-        className="absolute left-16 md:left-auto md:right-5 bottom-5 md:top-1/2 md:-translate-y-1/2 z-20 grid place-items-center w-10 h-10 rounded-full bg-primary-foreground/15 hover:bg-primary-foreground/30 backdrop-blur-sm border border-primary-foreground/25 text-primary-foreground transition"
+        className="absolute right-6 bottom-24 md:right-10 md:bottom-28 z-20 grid place-items-center w-11 h-11 rounded-full bg-primary-foreground/10 hover:bg-primary-foreground/25 backdrop-blur-sm border border-primary-foreground/25 text-primary-foreground transition"
       >
         <ChevronRight className="w-5 h-5" />
       </button>
 
       {/* Dots */}
-      <div className="absolute bottom-5 right-5 z-20 flex items-center gap-2">
+      <div className="absolute left-1/2 -translate-x-1/2 bottom-20 md:bottom-24 z-20 flex items-center gap-2">
         {SLIDES.map((_, idx) => (
           <button
             key={idx}
             aria-label={`Go to slide ${idx + 1}`}
             onClick={() => go(idx)}
             className={`h-1.5 rounded-full transition-all ${
-              idx === i ? "w-8 bg-primary-foreground" : "w-3 bg-primary-foreground/40 hover:bg-primary-foreground/70"
+              idx === i ? "w-10 bg-primary-foreground" : "w-3 bg-primary-foreground/40 hover:bg-primary-foreground/70"
             }`}
           />
         ))}
       </div>
-    </div>
+
+      {/* Marquee */}
+      <div className="absolute bottom-0 left-0 right-0 z-10 border-y border-primary-foreground/10 bg-primary/50 backdrop-blur-sm py-3 overflow-hidden">
+        <div className="flex w-max animate-marquee gap-12 px-6 text-primary-foreground/80 text-sm tracking-wide whitespace-nowrap">
+          {[...MARQUEE_ITEMS, ...MARQUEE_ITEMS].map((item, idx) => (
+            <span key={idx} className="inline-flex items-center gap-3">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary-foreground/60" />
+              {item}
+            </span>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 
 export default function Index() {
   return (
     <div className="min-h-screen">
-      {/* Hero with animated background */}
-      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-primary">
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-30"
-          style={{ backgroundImage: `url(${heroBg})` }}
-        />
-        {/* Animated grid */}
-        <div aria-hidden className="absolute inset-0 bg-grid-fade" />
-        {/* Aurora sweep */}
-        <div
-          aria-hidden
-          className="absolute -inset-1/2 opacity-40 animate-aurora"
-          style={{
-            background:
-              "conic-gradient(from 90deg at 50% 50%, transparent 0deg, hsl(195 90% 60% / 0.35) 60deg, transparent 120deg, hsl(220 90% 65% / 0.35) 200deg, transparent 280deg, hsl(170 80% 55% / 0.3) 340deg, transparent 360deg)",
-          }}
-        />
-        {/* Meteor shower */}
-        <Meteors count={20} />
-        {/* Animated orbs — Econet-inspired motion */}
-        <motion.div
-          aria-hidden
-          className="absolute -top-40 -left-32 w-[36rem] h-[36rem] rounded-full"
-          style={{ background: "radial-gradient(circle, hsl(195 90% 55% / 0.35) 0%, transparent 70%)" }}
-          animate={{ x: [0, 60, 0], y: [0, 40, 0], scale: [1, 1.1, 1] }}
-          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          aria-hidden
-          className="absolute -bottom-40 -right-32 w-[40rem] h-[40rem] rounded-full"
-          style={{ background: "radial-gradient(circle, hsl(220 80% 50% / 0.45) 0%, transparent 70%)" }}
-          animate={{ x: [0, -50, 0], y: [0, -30, 0], scale: [1, 1.15, 1] }}
-          transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          aria-hidden
-          className="absolute top-1/3 right-1/4 w-72 h-72 rounded-full"
-          style={{ background: "radial-gradient(circle, hsl(170 80% 50% / 0.25) 0%, transparent 70%)" }}
-          animate={{ x: [0, 40, -20, 0], y: [0, -30, 20, 0] }}
-          transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/60 via-primary/40 to-primary/90" />
-
-        <div className="relative z-10 container mx-auto px-4 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary-foreground/10 text-primary-foreground text-sm font-medium mb-6 border border-primary-foreground/20 backdrop-blur-sm">
-              <Sparkles className="w-3.5 h-3.5" />
-              Econet Telecom Lesotho
-            </span>
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-display font-bold text-primary-foreground leading-tight mb-6">
-              Connecting Lesotho<br />
-              to <RotatingWord />
-            </h1>
-            <p className="text-lg md:text-xl text-primary-foreground/80 max-w-2xl mx-auto mb-10">
-              High-speed fiber optic broadband across all 10 districts.
-              Apply online, track your installation, and get connected.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="relative bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold shadow-2xl shadow-primary-foreground/20 overflow-hidden group" asChild>
-                <Link to="/apply">
-                  <span className="relative z-10 inline-flex items-center">Apply Now <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-0.5 transition-transform" /></span>
-                  <span className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/15 to-transparent animate-shimmer" />
-                </Link>
-              </Button>
-              <Button variant="outline" size="lg" className="border-primary-foreground/40 text-primary-foreground bg-transparent hover:bg-primary-foreground/10" asChild>
-                <Link to="/coverage">Check Coverage</Link>
-              </Button>
-            </div>
-          </motion.div>
-
-          {/* Rotating service carousel */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="mt-12 md:mt-16 max-w-5xl mx-auto"
-          >
-            <HeroCarousel />
-          </motion.div>
-        </div>
-
-        {/* Marquee strip */}
-        <div className="absolute bottom-0 left-0 right-0 z-10 border-y border-primary-foreground/10 bg-primary/40 backdrop-blur-sm py-3 overflow-hidden">
-          <div className="flex w-max animate-marquee gap-12 px-6 text-primary-foreground/80 text-sm tracking-wide whitespace-nowrap">
-            {[...MARQUEE_ITEMS, ...MARQUEE_ITEMS].map((item, idx) => (
-              <span key={idx} className="inline-flex items-center gap-3">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary-foreground/60" />
-                {item}
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
+      <FullscreenHero />
 
       {/* Features */}
-      <section className="py-20 bg-background">
-        <div className="container mx-auto px-4">
+      <section className="relative py-20 bg-mesh-light overflow-hidden">
+        <div className="container mx-auto px-4 relative">
           <div className="text-center mb-14">
             <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-3">
               Enterprise-Grade Infrastructure
