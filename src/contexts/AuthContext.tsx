@@ -10,7 +10,8 @@ export type AppRole =
   | "technical"
   | "billing"
   | "customer"
-  | "technician";
+  | "technician"
+  | "distributor";
 
 interface AuthContextType {
   user: User | null;
