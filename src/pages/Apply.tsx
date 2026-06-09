@@ -40,6 +40,16 @@ export default function Apply() {
   const refCode = searchParams.get("ref")?.trim().toUpperCase() || "";
   const urlLat = searchParams.get("lat") || "";
   const urlLng = searchParams.get("lng") || "";
+  const urlService = searchParams.get("service") || "";
+
+  // Fibre applications must start from the coverage map (need GPS to check coverage).
+  useEffect(() => {
+    if (urlService === "fibre" && (!urlLat || !urlLng)) {
+      toast.info("Please check fibre coverage at your location first.");
+      navigate("/coverage?intent=fibre", { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [distributor, setDistributor] = useState<{ id: string; business_name: string; code: string } | null>(null);
   
   const [form, setForm] = useState({
