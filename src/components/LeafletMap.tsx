@@ -64,10 +64,10 @@ export default function LeafletMap({
     const map = L.map(mapRef.current).setView(center, zoom);
     mapInstance.current = map;
 
-    // Dark street tiles (default)
+    // Dark street tiles
     const darkTile = L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
-    }).addTo(map);
+    });
     darkTileRef.current = darkTile;
 
     // ESRI Satellite tiles
@@ -79,7 +79,7 @@ export default function LeafletMap({
     );
     satelliteTileRef.current = satelliteTile;
 
-    // Google Hybrid (satellite + labels/roads)
+    // Google Hybrid (satellite + labels/roads) — default
     const googleHybrid = L.tileLayer(
       "https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
       {
@@ -87,13 +87,13 @@ export default function LeafletMap({
         attribution: "&copy; Google",
         maxZoom: 20,
       }
-    );
+    ).addTo(map);
 
     // Layer control
     const baseMaps: Record<string, L.TileLayer> = {
+      "🌐 Google Hybrid": googleHybrid,
       "🗺️ Street": darkTile,
       "🛰️ Satellite": satelliteTile,
-      "🌐 Google Hybrid": googleHybrid,
     };
     L.control.layers(baseMaps, {}, { position: "topright" }).addTo(map);
 
