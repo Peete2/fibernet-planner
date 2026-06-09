@@ -4,6 +4,17 @@ import { Wifi, Radio, Cable, School, ChevronRight, ChevronLeft, MapPin, AlertCir
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import planWifi from "@/assets/plan-wifi.jpg";
+import planLte from "@/assets/plan-lte.jpg";
+import planFibre from "@/assets/plan-fibre.jpg";
+import planSchool from "@/assets/plan-school.jpg";
+
+const CATEGORY_IMAGES: Record<string, string> = {
+  fmc: planWifi,
+  lte: planLte,
+  fibre: planFibre,
+  fwa: planSchool,
+};
 
 // ── Plan data ──────────────────────────────────────────────
 
@@ -187,22 +198,41 @@ export default function ServicePlanSelector({ value, onChange, onCategoryChange,
             {visibleCategories.map((cat) => {
               const Icon = cat.icon;
               const isActive = selectedPlan?.category === cat.label;
+              const bg = CATEGORY_IMAGES[cat.id];
               return (
                 <button
                   key={cat.id}
                   type="button"
                   onClick={() => { setSelectedCategory(cat.id); onCategoryChange?.(cat.id as ServiceCategoryId); }}
-                  className={`relative flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all text-left ${
-                    isActive
-                      ? "border-primary bg-primary/10"
-                      : "border-border hover:border-primary/40 hover:bg-muted/50"
+                  className={`group relative overflow-hidden flex flex-col items-center justify-end gap-1.5 rounded-2xl border-2 p-4 min-h-[170px] transition-all text-left shadow-md hover:shadow-2xl hover:-translate-y-1 ${
+                    isActive ? "border-primary ring-2 ring-primary/40" : "border-border/40 hover:border-primary/60"
                   }`}
                 >
-                  <Icon className="w-6 h-6 text-primary" />
-                  <span className="font-semibold text-sm text-foreground">{cat.label}</span>
-                  <span className="text-[11px] text-muted-foreground text-center leading-tight">{cat.description}</span>
+                  {/* Background image */}
+                  <img
+                    src={bg}
+                    alt=""
+                    aria-hidden="true"
+                    loading="lazy"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-[1200ms] group-hover:scale-110"
+                  />
+                  {/* Gradient overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-primary/95 via-primary/70 to-primary/20" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/40 opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                  {/* Floating icon badge */}
+                  <div className="absolute top-3 right-3 z-10 rounded-full bg-white/15 backdrop-blur-md border border-white/25 p-2 shadow-lg group-hover:bg-white/25 transition-colors">
+                    <Icon className="w-4 h-4 text-white" />
+                  </div>
+
+                  {/* Text content */}
+                  <div className="relative z-10 w-full">
+                    <span className="block font-bold text-base text-white drop-shadow-md">{cat.label}</span>
+                    <span className="block text-[11px] text-white/85 leading-snug mt-0.5 drop-shadow">{cat.description}</span>
+                  </div>
+
                   {isActive && (
-                    <Badge variant="secondary" className="absolute top-2 right-2 text-[10px] px-1.5 py-0.5">
+                    <Badge variant="secondary" className="absolute top-3 left-3 z-10 text-[10px] px-1.5 py-0.5 shadow">
                       Selected
                     </Badge>
                   )}
