@@ -726,6 +726,32 @@ export type Database = {
         }
         Returns: boolean
       }
+      lookup_application_by_ref_code: {
+        Args: { _code: string }
+        Returns: {
+          created_at: string
+          customer_name: string
+          district: string
+          id: string
+          location: string
+          ref_code: string
+          rejection_reason: string
+          scheduled_date: string
+          service: string
+          stage: string
+          status: string
+          technician: string
+        }[]
+      }
+      lookup_application_history_by_ref_code: {
+        Args: { _code: string }
+        Returns: {
+          changed_by_name: string
+          created_at: string
+          note: string
+          status: string
+        }[]
+      }
       lookup_distributor_by_code: {
         Args: { _code: string }
         Returns: {
