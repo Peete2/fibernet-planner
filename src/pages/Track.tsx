@@ -63,11 +63,10 @@ export default function Track() {
     setResult(null);
     setHistory([]);
 
-    const { data, error } = await supabase
-      .from("applications")
-      .select("id, ref_code, customer_name, service, location, district, status, technician, scheduled_date, created_at, stage, rejection_reason")
-      .eq("ref_code", query.trim().toUpperCase())
-      .maybeSingle();
+    const code = query.trim().toUpperCase();
+    const { data: rows, error } = await supabase
+      .rpc("lookup_application_by_ref_code", { _code: code });
+    const data = Array.isArray(rows) ? rows[0] : null;
 
     if (error || !data) {
       setLoading(false);
@@ -77,10 +76,7 @@ export default function Track() {
     setResult(data as AppResult);
 
     const { data: hist } = await supabase
-      .from("application_status_history")
-      .select("status, created_at, changed_by_name, note")
-      .eq("application_id", (data as AppResult).id)
-      .order("created_at", { ascending: true });
+      .rpc("lookup_application_history_by_ref_code", { _code: code });
     setHistory((hist as HistoryEntry[]) || []);
     setLoading(false);
   };
