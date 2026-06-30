@@ -230,6 +230,35 @@ export default function ServicePlansManager() {
               <Textarea rows={3} value={form.details} onChange={(e) => setForm({ ...form, details: e.target.value })} placeholder="Integrated mobile data &amp; voice&#10;Home WiFi router included" className="text-sm" />
             </div>
             <div className="md:col-span-2">
+              <label className="text-xs text-muted-foreground">Plan photo (optional)</label>
+              <div className="flex items-start gap-3 mt-1">
+                <div className="w-28 h-20 rounded-lg border border-border bg-muted/40 overflow-hidden flex items-center justify-center shrink-0">
+                  {form.image_url ? (
+                    <img src={form.image_url} alt="Plan preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <ImageOff className="w-5 h-5 text-muted-foreground" />
+                  )}
+                </div>
+                <div className="flex-1 space-y-2">
+                  <div className="flex flex-wrap gap-2">
+                    <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-border bg-background text-xs font-medium cursor-pointer hover:border-primary/60">
+                      <Upload className="w-3.5 h-3.5" />
+                      {uploading ? "Uploading…" : "Upload image"}
+                      <input type="file" accept="image/*" className="hidden" disabled={uploading}
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadImage(f); e.currentTarget.value = ""; }} />
+                    </label>
+                    {form.image_url && (
+                      <Button type="button" variant="outline" size="sm" className="h-8 text-xs" onClick={() => setForm({ ...form, image_url: "" })}>
+                        Remove
+                      </Button>
+                    )}
+                  </div>
+                  <Input value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="Or paste an image URL" className="h-9 text-sm" />
+                  <p className="text-[11px] text-muted-foreground">JPG/PNG/WebP, up to 5MB. Used as the card background for this plan.</p>
+                </div>
+              </div>
+            </div>
+            <div className="md:col-span-2">
               <label className="text-xs text-muted-foreground">Visible to account types</label>
               <div className="flex flex-wrap gap-3 mt-2">
                 {ACCOUNT_TYPES.map((acc) => {
