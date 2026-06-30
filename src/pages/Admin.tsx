@@ -27,6 +27,7 @@ import Footer from "@/components/Footer";
 import PageSkeleton from "@/components/PageSkeleton";
 import AISuggestionsPanel from "@/components/AISuggestionsPanel";
 import ApCustomerManager from "@/components/ApCustomerManager";
+import { BulkNodeImport } from "@/components/BulkNodeImport";
 import { generateApplicationPDF, detectCategory, categoryLabels, type ServiceCategory } from "@/lib/pdf-generator";
 import { logAudit } from "@/lib/audit";
 import * as XLSX from "xlsx";
@@ -985,6 +986,9 @@ export default function Admin() {
               </div>
               <div className="mt-4">
                 <ApCustomerManager />
+              </div>
+              <div className="mt-4">
+                <BulkNodeImport onComplete={fetchData} />
               </div>
             </TabsContent>
 
