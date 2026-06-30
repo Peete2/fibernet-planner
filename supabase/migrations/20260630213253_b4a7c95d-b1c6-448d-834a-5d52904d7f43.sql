@@ -1,0 +1,1 @@
+ALTER TABLE public.service_plans ADD COLUMN IF NOT EXISTS image_url text;
