@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Wifi, Radio, Cable, School, Plus, Pencil, Save, X, Power, PowerOff } from "lucide-react";
+import { Wifi, Radio, Cable, School, Plus, Pencil, Save, X, Power, PowerOff, Upload, ImageOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,6 +21,7 @@ interface ServicePlanRow {
   is_active: boolean;
   sort_order: number;
   visible_to: string[];
+  image_url: string | null;
 }
 
 const CATEGORIES = [
@@ -40,6 +41,7 @@ const emptyForm = {
   category_id: "fmc" as ServicePlanRow["category_id"],
   name: "", price: "", speed: "", details: "", sort_order: "0",
   visible_to: ["individual", "business", "school"] as string[],
+  image_url: "" as string,
 };
 
 export default function ServicePlansManager() {
@@ -49,6 +51,7 @@ export default function ServicePlansManager() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState(emptyForm);
+  const [uploading, setUploading] = useState(false);
 
   const fetchPlans = async () => {
     setLoading(true);
@@ -71,6 +74,7 @@ export default function ServicePlansManager() {
       details: (p.details || []).join("\n"),
       sort_order: String(p.sort_order),
       visible_to: Array.isArray(p.visible_to) && p.visible_to.length > 0 ? p.visible_to : ["individual","business","school"],
+      image_url: p.image_url || "",
     });
   };
 
@@ -82,6 +86,27 @@ export default function ServicePlansManager() {
   };
 
   const cancel = () => { setEditingId(null); setCreating(false); setForm(emptyForm); };
+
+  const uploadImage = async (file: File) => {
+    if (!file.type.startsWith("image/")) { toast.error("Please choose an image file"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("Image must be under 5MB"); return; }
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `${form.category_id}/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("plan-images").upload(path, file, { upsert: false, contentType: file.type });
+      if (upErr) throw upErr;
+      // Long-lived signed URL (10 years) since bucket is private.
+      const { data, error: signErr } = await supabase.storage.from("plan-images").createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+      if (signErr) throw signErr;
+      setForm((f) => ({ ...f, image_url: data.signedUrl }));
+      toast.success("Image uploaded");
+    } catch (e: any) {
+      toast.error(e.message || "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const save = async () => {
     if (!form.name.trim() || !form.price.trim()) { toast.error("Name and price are required"); return; }
@@ -95,6 +120,7 @@ export default function ServicePlansManager() {
       details: detailsArr,
       sort_order: parseInt(form.sort_order, 10) || 0,
       visible_to: form.visible_to,
+      image_url: form.image_url.trim() || null,
     };
     const before = editingId ? plans.find((p) => p.id === editingId) : null;
     if (editingId) {
