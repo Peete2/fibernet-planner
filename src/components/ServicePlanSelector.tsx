@@ -25,6 +25,7 @@ export interface ServicePlan {
   price: string;
   speed?: string;
   details: string[];
+  image_url?: string | null;
 }
 
 interface PlanCategory {
@@ -140,6 +141,7 @@ export default function ServicePlanSelector({ value, onChange, onCategoryChange,
             price: p.price,
             speed: p.speed || undefined,
             details: Array.isArray(p.details) ? p.details : [],
+            image_url: p.image_url || null,
           }));
         return { id: catId, label: meta.label, icon: meta.icon, description: meta.description, plans, requiresFibreCheck: meta.requiresFibreCheck };
       }).filter((c) => c.plans.length > 0);
@@ -337,7 +339,7 @@ export default function ServicePlanSelector({ value, onChange, onCategoryChange,
                     onClick={() => {
                       onChange(plan.id, `${plan.category} – ${plan.name} (${plan.price})`, selectedCategory as ServiceCategoryId);
                     }}
-                    className={`w-full text-left rounded-lg border-2 p-3 transition-all ${
+                    className={`relative overflow-hidden w-full text-left rounded-lg border-2 p-3 transition-all ${
                       isSelected
                         ? "border-primary bg-primary/10"
                         : disabled
@@ -345,16 +347,27 @@ export default function ServicePlanSelector({ value, onChange, onCategoryChange,
                         : "border-border hover:border-primary/40"
                     }`}
                   >
-                    <div className="flex items-center justify-between">
+                    {plan.image_url && (
+                      <>
+                        <img src={plan.image_url} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover opacity-20" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/40" />
+                      </>
+                    )}
+                    <div className="relative flex items-center justify-between gap-2">
+                      {plan.image_url && (
+                        <img src={plan.image_url} alt="" className="w-10 h-10 rounded object-cover border border-border shrink-0" />
+                      )}
+                      <div className="flex-1 flex items-center justify-between gap-2">
                       <span className="font-semibold text-sm text-foreground">{plan.name}</span>
                       <Badge variant={isSelected ? "default" : "outline"} className="text-xs">
                         {plan.price}
                       </Badge>
+                      </div>
                     </div>
                     {plan.speed && (
                       <p className="text-xs text-muted-foreground mt-1">{plan.speed}</p>
                     )}
-                    <ul className="mt-1.5 space-y-0.5">
+                    <ul className="relative mt-1.5 space-y-0.5">
                       {plan.details.map((d, i) => (
                         <li key={i} className="text-xs text-muted-foreground flex items-start gap-1.5">
                           <ChevronRight className="w-3 h-3 mt-0.5 text-primary shrink-0" />
@@ -363,7 +376,7 @@ export default function ServicePlanSelector({ value, onChange, onCategoryChange,
                       ))}
                     </ul>
                     {isSelected && (
-                      <div className="flex items-center gap-1 mt-2 text-xs text-primary font-medium">
+                      <div className="relative flex items-center gap-1 mt-2 text-xs text-primary font-medium">
                         <Check className="w-3.5 h-3.5" /> Selected
                       </div>
                     )}
