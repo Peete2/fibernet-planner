@@ -305,6 +305,11 @@ function FullscreenHero() {
 export default function Index() {
   return (
     <div className="min-h-screen">
+      <SEO
+        title="ETL — High-Speed Fibre & LTE Internet in Lesotho"
+        description="Econet Telecom Lesotho: Fibre, Wi-Fi PLUS, Fixed LTE and FWA. Check coverage on the live map and apply online in minutes."
+        path="/"
+      />
       <FullscreenHero />
 
       {/* Features */}

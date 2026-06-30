@@ -87,6 +87,7 @@ export default function Track() {
 
   return (
     <div className="pt-20 min-h-screen bg-background flex flex-col">
+      <SEO title="Track Application | ETL" description="Track the status of your ETL service application in real time." path="/track" noindex />
       <div className="container mx-auto px-4 py-8 max-w-2xl flex-1">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-2">
