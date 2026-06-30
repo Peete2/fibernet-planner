@@ -277,6 +277,8 @@ export default function StageDashboardLayout({
                         </p>
                       )}
                     </button>
+                      );
+                    })()
                   ))
                 )}
               </div>
