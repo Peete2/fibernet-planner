@@ -295,6 +295,7 @@ export default function ServicePlansManager() {
           <thead>
             <tr className="border-b border-border bg-muted/50">
               <th className="px-4 py-3 text-left font-medium text-muted-foreground w-14">#</th>
+              <th className="px-4 py-3 text-left font-medium text-muted-foreground w-16">Photo</th>
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">Name</th>
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">Price</th>
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">Speed</th>
@@ -306,12 +307,19 @@ export default function ServicePlansManager() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">Loading…</td></tr>
+              <tr><td colSpan={9} className="px-4 py-8 text-center text-muted-foreground">Loading…</td></tr>
             ) : visiblePlans.length === 0 ? (
-              <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">No plans in this category yet.</td></tr>
+              <tr><td colSpan={9} className="px-4 py-8 text-center text-muted-foreground">No plans in this category yet.</td></tr>
             ) : visiblePlans.map((p) => (
               <tr key={p.id} className="border-b border-border hover:bg-muted/30">
                 <td className="px-4 py-3 text-muted-foreground">{p.sort_order}</td>
+                <td className="px-4 py-3">
+                  {p.image_url ? (
+                    <img src={p.image_url} alt={p.name} className="w-12 h-10 object-cover rounded border border-border" />
+                  ) : (
+                    <div className="w-12 h-10 rounded border border-dashed border-border flex items-center justify-center text-muted-foreground"><ImageOff className="w-3.5 h-3.5" /></div>
+                  )}
+                </td>
                 <td className="px-4 py-3 font-medium text-foreground">{p.name}</td>
                 <td className="px-4 py-3 text-foreground">{p.price}</td>
                 <td className="px-4 py-3 text-muted-foreground">{p.speed || "—"}</td>
