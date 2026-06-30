@@ -722,6 +722,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      generate_application_ref: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
