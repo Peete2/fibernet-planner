@@ -17,6 +17,9 @@ import { toast } from "sonner";
 import Footer from "@/components/Footer";
 import MathCaptcha from "@/components/MathCaptcha";
 import { checkFiberAvailability, isFiberServiceLabel } from "@/lib/service-eligibility";
+import SEO from "@/components/SEO";
+
+const DRAFT_KEY = "etl:apply:draft:v1";
 
 const buildingTypes = [
   { value: "residential", label: "Residential House" },
@@ -74,6 +77,26 @@ export default function Apply() {
     longitude: urlLng,
     applicantRole: "" as "student" | "teacher" | "",
   });
+
+  // Restore draft on mount (only when there's nothing pre-filled from URL/profile gaps).
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      setForm((f) => ({ ...f, ...saved, latitude: urlLat || saved.latitude || "", longitude: urlLng || saved.longitude || "" }));
+      toast.info("Restored your saved draft");
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Auto-save draft (debounced) while user fills the form
+  useEffect(() => {
+    const t = setTimeout(() => {
+      try { localStorage.setItem(DRAFT_KEY, JSON.stringify(form)); } catch {}
+    }, 400);
+    return () => clearTimeout(t);
+  }, [form]);
 
   // Resolve referral code (if any) into a distributor record
   useEffect(() => {
@@ -231,6 +254,7 @@ export default function Apply() {
 
       if (error) throw error;
       setSubmittedRef(data.ref_code);
+      try { localStorage.removeItem(DRAFT_KEY); } catch {}
       toast.success("Application submitted!");
     } catch (err: any) {
       toast.error(err.message || "Failed to submit application");
@@ -269,6 +293,11 @@ export default function Apply() {
 
   return (
     <div className="pt-20 min-h-screen bg-mesh-light relative flex flex-col">
+      <SEO
+        title="Apply for Internet Service | ETL"
+        description="Apply online for ETL Fibre, Wi-Fi PLUS, Fixed LTE or FWA service. Fast setup across Lesotho."
+        path="/apply"
+      />
       <div className="container mx-auto px-4 py-8 max-w-2xl flex-1">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-2">Apply for Service</h1>

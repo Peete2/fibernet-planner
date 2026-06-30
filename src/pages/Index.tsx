@@ -8,6 +8,7 @@ import slideFiber from "@/assets/slide-fiber.jpg";
 import slideHome from "@/assets/slide-home.jpg";
 import slideBusiness from "@/assets/slide-business.jpg";
 import slideEcocash from "@/assets/slide-ecocash.jpg";
+import SEO from "@/components/SEO";
 
 const features = [
   { icon: Wifi, title: "Fiber Broadband", desc: "Up to 200Mbps symmetric fiber to your premises across Lesotho" },
@@ -304,6 +305,11 @@ function FullscreenHero() {
 export default function Index() {
   return (
     <div className="min-h-screen">
+      <SEO
+        title="ETL — High-Speed Fibre & LTE Internet in Lesotho"
+        description="Econet Telecom Lesotho: Fibre, Wi-Fi PLUS, Fixed LTE and FWA. Check coverage on the live map and apply online in minutes."
+        path="/"
+      />
       <FullscreenHero />
 
       {/* Features */}
