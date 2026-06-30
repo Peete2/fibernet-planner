@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Wifi, Radio, Cable, School, Plus, Pencil, Save, X, Power, PowerOff } from "lucide-react";
+import { Wifi, Radio, Cable, School, Plus, Pencil, Save, X, Power, PowerOff, Upload, ImageOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,6 +21,7 @@ interface ServicePlanRow {
   is_active: boolean;
   sort_order: number;
   visible_to: string[];
+  image_url: string | null;
 }
 
 const CATEGORIES = [
@@ -40,6 +41,7 @@ const emptyForm = {
   category_id: "fmc" as ServicePlanRow["category_id"],
   name: "", price: "", speed: "", details: "", sort_order: "0",
   visible_to: ["individual", "business", "school"] as string[],
+  image_url: "" as string,
 };
 
 export default function ServicePlansManager() {
@@ -49,6 +51,7 @@ export default function ServicePlansManager() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState(emptyForm);
+  const [uploading, setUploading] = useState(false);
 
   const fetchPlans = async () => {
     setLoading(true);
@@ -71,6 +74,7 @@ export default function ServicePlansManager() {
       details: (p.details || []).join("\n"),
       sort_order: String(p.sort_order),
       visible_to: Array.isArray(p.visible_to) && p.visible_to.length > 0 ? p.visible_to : ["individual","business","school"],
+      image_url: p.image_url || "",
     });
   };
 
@@ -82,6 +86,27 @@ export default function ServicePlansManager() {
   };
 
   const cancel = () => { setEditingId(null); setCreating(false); setForm(emptyForm); };
+
+  const uploadImage = async (file: File) => {
+    if (!file.type.startsWith("image/")) { toast.error("Please choose an image file"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("Image must be under 5MB"); return; }
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `${form.category_id}/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("plan-images").upload(path, file, { upsert: false, contentType: file.type });
+      if (upErr) throw upErr;
+      // Long-lived signed URL (10 years) since bucket is private.
+      const { data, error: signErr } = await supabase.storage.from("plan-images").createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+      if (signErr) throw signErr;
+      setForm((f) => ({ ...f, image_url: data.signedUrl }));
+      toast.success("Image uploaded");
+    } catch (e: any) {
+      toast.error(e.message || "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const save = async () => {
     if (!form.name.trim() || !form.price.trim()) { toast.error("Name and price are required"); return; }
@@ -95,6 +120,7 @@ export default function ServicePlansManager() {
       details: detailsArr,
       sort_order: parseInt(form.sort_order, 10) || 0,
       visible_to: form.visible_to,
+      image_url: form.image_url.trim() || null,
     };
     const before = editingId ? plans.find((p) => p.id === editingId) : null;
     if (editingId) {
@@ -204,6 +230,35 @@ export default function ServicePlansManager() {
               <Textarea rows={3} value={form.details} onChange={(e) => setForm({ ...form, details: e.target.value })} placeholder="Integrated mobile data &amp; voice&#10;Home WiFi router included" className="text-sm" />
             </div>
             <div className="md:col-span-2">
+              <label className="text-xs text-muted-foreground">Plan photo (optional)</label>
+              <div className="flex items-start gap-3 mt-1">
+                <div className="w-28 h-20 rounded-lg border border-border bg-muted/40 overflow-hidden flex items-center justify-center shrink-0">
+                  {form.image_url ? (
+                    <img src={form.image_url} alt="Plan preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <ImageOff className="w-5 h-5 text-muted-foreground" />
+                  )}
+                </div>
+                <div className="flex-1 space-y-2">
+                  <div className="flex flex-wrap gap-2">
+                    <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-border bg-background text-xs font-medium cursor-pointer hover:border-primary/60">
+                      <Upload className="w-3.5 h-3.5" />
+                      {uploading ? "Uploading…" : "Upload image"}
+                      <input type="file" accept="image/*" className="hidden" disabled={uploading}
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadImage(f); e.currentTarget.value = ""; }} />
+                    </label>
+                    {form.image_url && (
+                      <Button type="button" variant="outline" size="sm" className="h-8 text-xs" onClick={() => setForm({ ...form, image_url: "" })}>
+                        Remove
+                      </Button>
+                    )}
+                  </div>
+                  <Input value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="Or paste an image URL" className="h-9 text-sm" />
+                  <p className="text-[11px] text-muted-foreground">JPG/PNG/WebP, up to 5MB. Used as the card background for this plan.</p>
+                </div>
+              </div>
+            </div>
+            <div className="md:col-span-2">
               <label className="text-xs text-muted-foreground">Visible to account types</label>
               <div className="flex flex-wrap gap-3 mt-2">
                 {ACCOUNT_TYPES.map((acc) => {
@@ -240,6 +295,7 @@ export default function ServicePlansManager() {
           <thead>
             <tr className="border-b border-border bg-muted/50">
               <th className="px-4 py-3 text-left font-medium text-muted-foreground w-14">#</th>
+              <th className="px-4 py-3 text-left font-medium text-muted-foreground w-16">Photo</th>
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">Name</th>
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">Price</th>
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">Speed</th>
@@ -251,12 +307,19 @@ export default function ServicePlansManager() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">Loading…</td></tr>
+              <tr><td colSpan={9} className="px-4 py-8 text-center text-muted-foreground">Loading…</td></tr>
             ) : visiblePlans.length === 0 ? (
-              <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">No plans in this category yet.</td></tr>
+              <tr><td colSpan={9} className="px-4 py-8 text-center text-muted-foreground">No plans in this category yet.</td></tr>
             ) : visiblePlans.map((p) => (
               <tr key={p.id} className="border-b border-border hover:bg-muted/30">
                 <td className="px-4 py-3 text-muted-foreground">{p.sort_order}</td>
+                <td className="px-4 py-3">
+                  {p.image_url ? (
+                    <img src={p.image_url} alt={p.name} className="w-12 h-10 object-cover rounded border border-border" />
+                  ) : (
+                    <div className="w-12 h-10 rounded border border-dashed border-border flex items-center justify-center text-muted-foreground"><ImageOff className="w-3.5 h-3.5" /></div>
+                  )}
+                </td>
                 <td className="px-4 py-3 font-medium text-foreground">{p.name}</td>
                 <td className="px-4 py-3 text-foreground">{p.price}</td>
                 <td className="px-4 py-3 text-muted-foreground">{p.speed || "—"}</td>
