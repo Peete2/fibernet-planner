@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet.heat";
+import "leaflet.markercluster";
+import "leaflet.markercluster/dist/MarkerCluster.css";
+import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import { LESOTHO_CENTER } from "@/lib/mock-data";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -147,9 +150,21 @@ export default function LeafletMap({
         const { data: conns } = await supabase
           .from("customer_connections")
           .select("id, customer_name, latitude, longitude, source");
+        const cluster = (L as any).markerClusterGroup({
+          showCoverageOnHover: false,
+          maxClusterRadius: 40,
+          iconCreateFunction: (c: any) => {
+            const count = c.getChildCount();
+            return L.divIcon({
+              html: `<div style="background:#10b981;color:#fff;border:2px solid #064e3b;border-radius:9999px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;box-shadow:0 1px 4px rgba(0,0,0,0.3)">${count}</div>`,
+              className: "",
+              iconSize: [32, 32],
+            });
+          },
+        });
         conns?.forEach((c) => {
           const color = c.source === "auto" ? "#10b981" : "#a78bfa";
-          L.circleMarker([c.latitude, c.longitude], {
+          const m = L.circleMarker([c.latitude, c.longitude], {
             radius: 4,
             fillColor: color,
             color: "#0f172a",
@@ -163,9 +178,10 @@ export default function LeafletMap({
                 <hr style="border-color:#334155;margin:4px 0"/>
                 <div style="font-size:11px">Connected customer<br/>Source: ${c.source}</div>
               </div>`
-            )
-            .addTo(nodesLayer);
+            );
+          cluster.addLayer(m);
         });
+        nodesLayer.addLayer(cluster);
       }
 
       if (showRoutes) {
