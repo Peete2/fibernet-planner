@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import Footer from "@/components/Footer";
 import { STAGES, stageLabel } from "@/lib/stage-engine";
+import SEO from "@/components/SEO";
 
 const stageIcons: Record<string, typeof Clock> = {
   moderation: Shield,

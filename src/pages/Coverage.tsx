@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { Search, MapPin, Loader2, Cable } from "lucide-react";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
+import SEO from "@/components/SEO";
 
 interface NominatimResult {
   lat: string;

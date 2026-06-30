@@ -8,6 +8,7 @@ import slideFiber from "@/assets/slide-fiber.jpg";
 import slideHome from "@/assets/slide-home.jpg";
 import slideBusiness from "@/assets/slide-business.jpg";
 import slideEcocash from "@/assets/slide-ecocash.jpg";
+import SEO from "@/components/SEO";
 
 const features = [
   { icon: Wifi, title: "Fiber Broadband", desc: "Up to 200Mbps symmetric fiber to your premises across Lesotho" },
