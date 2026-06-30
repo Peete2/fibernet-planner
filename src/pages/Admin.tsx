@@ -987,6 +987,9 @@ export default function Admin() {
               <div className="mt-4">
                 <ApCustomerManager />
               </div>
+              <div className="mt-4">
+                <BulkNodeImport onComplete={fetchData} />
+              </div>
             </TabsContent>
 
             {/* ========== AI PLANNER ========== */}
