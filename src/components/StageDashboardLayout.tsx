@@ -240,6 +240,21 @@ export default function StageDashboardLayout({
                   </div>
                 ) : (
                   apps.map((a) => (
+                    (() => {
+                      const hoursInStage = (Date.now() - new Date(a.updated_at).getTime()) / 36e5;
+                      const slaTone =
+                        hoursInStage >= 48
+                          ? "text-destructive"
+                          : hoursInStage >= 24
+                          ? "text-orange-500"
+                          : "text-muted-foreground";
+                      const slaText =
+                        hoursInStage < 1
+                          ? "just now"
+                          : hoursInStage < 24
+                          ? `${Math.round(hoursInStage)}h in stage`
+                          : `${Math.round(hoursInStage / 24)}d in stage`;
+                      return (
                     <button
                       key={a.id}
                       onClick={() => setSelectedId(a.id)}
@@ -255,6 +270,7 @@ export default function StageDashboardLayout({
                       </div>
                       <p className="text-sm text-foreground truncate">{a.customer_name}</p>
                       <p className="text-xs text-muted-foreground truncate">{a.service}</p>
+                      <p className={`text-[10px] mt-0.5 ${slaTone}`}>⏱ {slaText}</p>
                       {a.rejection_reason && (
                         <p className="text-[10px] text-destructive mt-1 truncate">
                           ↩ {a.rejection_reason}
