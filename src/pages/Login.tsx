@@ -29,19 +29,25 @@ export default function Login() {
   const [form, setForm] = useState({ email: "", password: "", fullName: "", accountType: "individual" });
 
   const handleOAuth = async (provider: "google" | "apple") => {
-    setLoading(true);
     try {
       const result = await lovable.auth.signInWithOAuth(provider, {
         redirect_uri: window.location.origin,
+        extraParams: provider === "google" ? { prompt: "select_account" } : {},
       });
-      if (result.error) throw new Error(result.error.message || "Sign-in failed");
       if (result.redirected) return;
+      if (result.error) {
+        const msg = result.error.message || "";
+        // User closed the popup or cancelled — don't show a scary error
+        if (/closed|cancel|popup|denied/i.test(msg)) return;
+        throw new Error(msg || "Sign-in failed");
+      }
+      // Confirm session actually landed before navigating
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) throw new Error("Session not established. Please try again.");
       toast.success("Welcome!");
       navigate("/");
     } catch (err: any) {
       toast.error(err.message || "Sign-in failed");
-    } finally {
-      setLoading(false);
     }
   };
 
